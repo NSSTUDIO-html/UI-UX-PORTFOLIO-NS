@@ -2,7 +2,7 @@
 
 A modern and minimal **UI/UX portfolio website** to showcase my design projects, skills, and case studies.  
 
-🌐 **Live Demo:** [Your Portfolio Link](https://your-portfolio-link.com)  
+🌐 **Live Demo:** [Your Portfolio Link](https://nsstudio-html.github.io/UI-UX-PORTFOLIO-NS/)  
 
 ---
 
