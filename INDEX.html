@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wardrive3D - Main Menu</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Import the Orbitron font */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap');
+
+    body {
+        margin: 0;
+        padding: 0;
+        /* Note: Kept your local path. Replace with a public URL or base64 image if hosting online. */
+        background: black url('/storage/emulated/0/#@WAR_DRIVE(3D)[ ] + NS/FRONTEND/MEDIA/WARDRIVE3D.png') no-repeat center center fixed;
+        background-size: cover;
+        /* Use the aggressive 'Orbitron' font */
+        font-family: 'Orbitron', sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
+    }
+    
+    /* Menu Container Styling */
+    .menu-container {
+        text-align: center;
+        /* Slightly transparent dark background */
+        background: rgba(10, 10, 10, 0.85); 
+        padding: 50px 70px;
+        border: 1px solid red; /* Thin primary border */
+        border-radius: 5px; /* Sharper corners */
+        /* Multi-layered glow effect */
+        box-shadow: 
+            0 0 10px rgba(255, 69, 0, 0.6), /* Red/Orange glow */
+            0 0 40px rgba(0, 255, 0, 0.3); /* Outer Green pulse */
+        backdrop-filter: blur(8px); /* Stronger blur for better contrast */
+        /* Highlight accent lines */
+        border-left: 5px solid red;
+        border-right: 5px solid red;
+        /* Animation on load */
+        animation: fadeIn 1.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {opacity: 0; transform: scale(0.9);}
+        to {opacity: 1; transform: scale(1);}
+    }
+    
+    /* Title Styling */
+    h1 {
+        font-size: clamp(36px, 8vw, 64px); /* Responsive font size */
+        color: #FFD700; /* Gold/Bright Orange color */
+        text-shadow: 
+            0 0 5px #FF4500, /* Darker red glow */
+            0 0 15px #FF8C00; /* Strong orange glow */
+        margin-bottom: 60px;
+        letter-spacing: 5px;
+        font-weight: 800;
+    }
+    
+    /* Button Base Styling */
+    .menu-btn {
+        display: block;
+        width: 260px; /* Consistent button width */
+        margin: 20px auto;
+        padding: 16px;
+        border: 1px solid #00FF00; /* Neon Green border */
+        border-radius: 2px;
+        /* Default Red/Orange gradient */
+        background: linear-gradient(180deg, rgba(255, 69, 0, 0.8), rgba(139, 0, 0, 0.8));
+        color: #FFFFFF; /* White text for clarity */
+        font-size: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        /* Smooth transition for all properties */
+        transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: 0 0 8px rgba(255, 69, 0, 0.5); /* Initial red glow */
+        text-transform: uppercase;
+    }
+    
+    /* Button Hover Effect */
+    .menu-btn:hover {
+        /* Swap to Green gradient on hover */
+        background: linear-gradient(180deg, rgba(0, 255, 0, 0.8), rgba(0, 100, 0, 0.8));
+        color: #000000; /* Black text on neon green */
+        /* Lift and slight enlargement */
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 
+            0 0 10px #00FF00, /* Strong Neon Green glow */
+            0 5px 20px rgba(0, 255, 0, 0.5); /* Shadow for 'lift' effect */
+    }
+    
+  </style>
+</head>
+
+<body>
+  <div class="menu-container">
+    <h1>Wardrive3D</h1>
+    
+    <button class="menu-btn" onclick="window.location.href='play.html'">PLAY GAME</button>
+    <button class="menu-btn" onclick="window.location.href='settings.html'">SETTINGS</button>
+    <button class="menu-btn" onclick="window.location.href='assets.html'">VEHICLE GARAGE</button>
+    <button class="menu-btn" onclick="window.location.href='hud.html'">LORE & INTEL</button>
+    
+  </div>
+</body>
+</html>

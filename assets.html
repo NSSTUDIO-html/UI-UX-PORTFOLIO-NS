@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wardrive3D - Vehicle Garage</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'neon-red': '#FF4500',
+            'neon-green': '#00FF00',
+            'neon-gold': '#FFD700',
+            'dark-bg': 'rgba(10, 10, 10, 0.9)',
+          },
+          fontFamily: {
+            display: ['Orbitron', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Orbitron Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black url('/storage/emulated/0/WAR_DRIVE_3D/FRONTEND/MEDIA/WARDRIVE3D.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Orbitron', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .fade-in-animation {
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    .asset-gradient-red {
+      background-image: linear-gradient(135deg, rgba(255, 69, 0, 0.85), rgba(139, 0, 0, 0.85));
+    }
+
+    .asset-gradient-green-hover:hover {
+      background-image: linear-gradient(135deg, rgba(0, 255, 0, 0.85), rgba(0, 100, 0, 0.85));
+    }
+  </style>
+</head>
+
+<body class="flex items-center justify-center font-display text-center">
+  <main class="selection-container p-10 md:p-12 border border-red-600 rounded-md shadow-xl bg-dark-bg backdrop-blur-md fade-in-animation max-w-4xl w-11/12">
+    
+    <h1 class="text-4xl md:text-5xl font-extrabold text-neon-gold mb-8 tracking-widest drop-shadow-[0_0_5px_#FF4500]">
+      Vehicle Garage
+    </h1>
+
+    <section class="button-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-10">
+      
+      <a class="asset-btn asset-gradient-red asset-gradient-green-hover 
+                flex flex-col justify-center items-center h-40 p-4 border-2 border-neon-green rounded 
+                text-white text-xl font-semibold uppercase cursor-pointer 
+                transition-all duration-300 shadow-md shadow-red-700/50 hover:shadow-2xl hover:shadow-neon-green/70 
+                hover:scale-105 hover:text-black no-underline" 
+         href="../SCRIPTS/WARCAR.html">
+        WARCAR
+        <span class="text-sm font-normal mt-1 text-gray-300">High Speed / Low Armor</span>
+      </a>
+
+      <a class="asset-btn asset-gradient-red asset-gradient-green-hover
+                flex flex-col justify-center items-center h-40 p-4 border-2 border-neon-green rounded 
+                text-white text-xl font-semibold uppercase cursor-pointer 
+                transition-all duration-300 shadow-md shadow-red-700/50 hover:shadow-2xl hover:shadow-neon-green/70
+                hover:scale-105 hover:text-black no-underline"
+         href="/storage/emulated/0/WAR_DRIVE_3D/FRONTEND/SCRIPTS/TANK.html">
+        TANK
+        <span class="text-sm font-normal mt-1 text-gray-300">Low Speed / Heavy Armor</span>
+      </a>
+
+      <a class="asset-btn asset-gradient-red asset-gradient-green-hover 
+                flex flex-col justify-center items-center h-40 p-4 border-2 border-neon-green rounded 
+                text-white text-xl font-semibold uppercase cursor-pointer 
+                transition-all duration-300 shadow-md shadow-red-700/50 hover:shadow-2xl hover:shadow-neon-green/70
+                hover:scale-105 hover:text-black no-underline"
+         href="/storage/emulated/0/WAR_DRIVE_3D/FRONTEND/SCRIPTS/HELICOPTER.html">
+        HELICOPTER
+        <span class="text-sm font-normal mt-1 text-gray-300">Airborne / Missile Loadout</span>
+      </a>
+
+    </section>
+
+    <a class="back-btn inline-block mt-12 px-8 py-3 border border-neon-gold text-neon-gold
+              uppercase transition-all duration-300 no-underline rounded-sm
+              hover:bg-neon-gold hover:text-black hover:shadow-md hover:shadow-neon-gold" 
+       href="/storage/emulated/0/WAR_DRIVE_3D/FRONTEND/index.html">
+      &lt; Back to Main Menu
+    </a>
+
+  </main>
+</body>
+</html>
