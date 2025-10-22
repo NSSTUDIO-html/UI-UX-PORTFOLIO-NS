@@ -78,7 +78,7 @@ const createScene = async () => {
   // Create one root node for all
   carRoot = new BABYLON.TransformNode("carRoot", scene);
 
-  const basePath = "../ASSETS/";
+  const basePath = "./";
 
   
   BABYLON.SceneLoader.ImportMesh("", basePath, "t-64b.glb", scene, (meshes) => {
