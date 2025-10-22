@@ -41,7 +41,7 @@
 </head>
 <body>
   <canvas id="renderCanvas"></canvas>
-  <div id="status">🚗 Loading Car...</div>
+  <div id="status">🚗 Loading HELICOPTER...</div>
 
   <script>
 const canvas = document.getElementById("renderCanvas");
@@ -86,7 +86,7 @@ const createScene = async () => {
     car.position = new BABYLON.Vector3(0, 4, 0);
     car.scaling = new BABYLON.Vector3(2.5, 2.5, 2.5);
     car.parent = carRoot;
-    document.getElementById("status").innerText = "✅ Car Loaded Successfully!";
+    document.getElementById("status").innerText = "✅ HELICOPTER Loaded Successfully!";
   });
   
   carRoot.position = new BABYLON.Vector3(0, 0, 0);
