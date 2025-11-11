@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WarDrive3D – Car Base + HUD</title>
+
+  <!-- ✅ Babylon.js Core -->
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <!-- ✅ Babylon.js Loaders (needed for .glb/.gltf) -->
+  <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+  <!-- ✅ Babylon.js GUI (optional HUD/UI) -->
+  <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+    #renderCanvas {
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: sans-serif;
+      font-size: 14px;
+      z-index: 10;
+    }
+  /* 🔥 Common button style */
+button {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 30%;
+  background-color: rgba(20, 20, 20, 0.7);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* Hover effects */
+button:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+  background-color: rgba(30, 30, 30, 0.9);
+}
+
+/* Weapon buttons */
+#v { bottom: 0; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/ae/PEO_M249_Para_ACOG.jpg'); }
+#w { bottom: 70px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMmvVW7ftU7mlDPgN59P9mEVxi0tvK6wSzz_v705SK4b1Y8cfurn4kjjI&s=10'); }
+#p { bottom: 140px; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/78/A-4_Skyhawk_rocket_pod.JPG'); }
+#s { bottom: 210px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyxGwjULw3T6N-g_Ob4jFJ5oYvLOMqVDehoUSYDjaN8sKcZotBQujjSYG3&s=10'); }
+
+#t { bottom: 0; right: 70px; background-image: url('https://media.sketchfab.com/models/5432b5c920444c2f96feb4c7e014fa74/thumbnails/f88199126dc544079a7f0347016e27f1/2b44de7de3684d7f8e2a4b63ba3cbb57.jpeg'); }
+#bo { bottom: 70px; right: 70px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQbp56wkjSBP8Fy8ZSSUGnE7_S2Htl0YgGQM4dLZebfNADD_3Qt7az_ixO&s=10'); }
+#wa { bottom: 140px; right: 70px; background-image: url('https://www-cdn.djiits.com/cms/uploads/ef97699c719414c2138ae8cca2806760.png'); }
+#as { bottom: 0; right: 135px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0pHWc1JWwbmqBxN5qV7KUbujaqOwGGuJK1Y3NrtO91A&s=10'); }
+#tri { bottom: 0; right: 200px; background-image: url('https://p.turbosquid.com/ts-thumb/os/knJfkO/GhOSWi8Z/main_0/png/1473691287/1920x1080/fit_q87/8f64475d53491ed3294c5585d4177871b677987b/main_0.jpg'); }
+
+/* 🌌 Futuristic Toggle Control */
+#toggle {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #0a0a0a 50%, #000 100%);
+  padding: 25px;
+  border: 2px solid #00eaff;
+  box-shadow:
+    0 0 25px rgba(0, 255, 255, 0.7),
+    inset 0 0 10px rgba(0, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 5;
+}
+
+#toggle:hover {
+  box-shadow:
+    0 0 35px rgba(0, 255, 255, 0.9),
+    0 0 60px rgba(0, 255, 255, 0.4),
+    inset 0 0 15px rgba(0, 255, 255, 0.6);
+  transform: scale(1.05);
+}
+
+#sw {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #111 30%, #333 100%);
+  box-shadow:
+    inset 3px 3px 8px #000,
+    inset -3px -3px 8px #444,
+    0 0 5px #00eaff;
+  transition: all 0.4s ease;
+}
+
+#toggle:hover #sw {
+  background: radial-gradient(circle, #00ffff 40%, #007777 100%);
+  box-shadow:
+    0 0 25px #00ffff,
+    inset 0 0 10px #00cccc;
+  transform: scale(1.25) rotate(45deg);
+}
+  </style>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  <div id="status">🚗 Loading Car...</div>
+  <!-- vulcan--><button id="v"></button>
+  <!-- wrecker--><button id="w"></button>
+  <!-- pods--><button id="p"></button>
+  <!-- seeker--><button id="s"></button>
+  <!-- thunder--><button id="t"></button>
+  <!-- blackout--><button id="bo"></button>
+  <!-- wasp--><button id="wa"></button>
+  <!-- aegisheild--><button id="as"></button>
+  <!-- trident--><button id="tri"></button>
+  
+   <!-- car controls--><div id="toggle"><div id="sw"></div></div>
+  
+  <script>
+const canvas = document.getElementById("renderCanvas");
+const engine = new BABYLON.Engine(canvas, true);
+let scene, carRoot;
+
+const createScene = async () => {
+  scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+
+  // Camera
+  const camera = new BABYLON.ArcRotateCamera(
+    "camera",
+    Math.PI / 2,
+    Math.PI / 3,
+    10,
+    new BABYLON.Vector3(0, 1, 0),
+    scene
+  );
+  camera.attachControl(canvas, true);
+
+  // Lights
+  const light1 = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+  light1.intensity = 0.8;
+  const light2 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(5, 5, 5), scene);
+  light2.intensity = 0.8;
+
+  // Ground
+  const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 20, height: 20 }, scene);
+  const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+  groundMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+  ground.material = groundMat;
+
+  // Create one root node for all
+  carRoot = new BABYLON.TransformNode("carRoot", scene);
+
+  const basePath = "../ASSETS/WARCAR/";
+
+  // Helper to load and attach model
+  const loadAndAttach = (file, scale, pos, rot) => {
+    BABYLON.SceneLoader.ImportMesh("", basePath, file, scene, (meshes) => {
+      const m = meshes[0];
+      m.scaling = scale;
+      m.position = pos;
+      m.rotation = rot;
+      m.parent = carRoot; // attach to root
+    });
+  };
+
+  // Main Car
+  BABYLON.SceneLoader.ImportMesh("", basePath, "bumblebee_tf1_2007_vehicle_mode.glb", scene, (meshes) => {
+    const car = meshes[0];
+    car.position = new BABYLON.Vector3(0, 0, 0);
+    car.scaling = new BABYLON.Vector3(1, 1, 1);
+    car.parent = carRoot;
+    document.getElementById("status").innerText = "✅ Car Loaded Successfully!";
+  });
+
+  // Weapons + Add-ons
+  loadAndAttach("pkp.glb", new BABYLON.Vector3(0.2, 0.2, 0.2), new BABYLON.Vector3(0.6, 1.8, -0.6), new BABYLON.Vector3(0,0,0));
+  loadAndAttach("stylized_retro-futuristic_shotgun-1.glb", new BABYLON.Vector3(0.5, 0.5, 0.5), new BABYLON.Vector3(-0.7, 0.6, 2), new BABYLON.Vector3(0, Math.PI/2, 0));
+  loadAndAttach("rl202.glb", new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 1, -3), new BABYLON.Vector3(0,0,0));
+  loadAndAttach("missile_launcher.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(-0.5, 0.7, 0), new BABYLON.Vector3(0, Math.PI/2, 0));
+  loadAndAttach("upgraded_laser_energy_cannon.glb", new BABYLON.Vector3(0.3, 0.3, 0.3), new BABYLON.Vector3(-0.7, 0, -3), new BABYLON.Vector3(0, Math.PI, 0));
+  loadAndAttach("sci-fi_emp_grenade.glb", new BABYLON.Vector3(0.5, 0.5, 0.5), new BABYLON.Vector3(1.3, 0.6, 1), new BABYLON.Vector3(Math.PI/2, Math.PI, 0));
+  loadAndAttach("mirrors_edge_catalyst_vtol.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(1, 1, -2), new BABYLON.Vector3(Math.PI/2, Math.PI/2, 0));
+  loadAndAttach("egyptian_shield.glb", new BABYLON.Vector3(1, 1, 1), new BABYLON.Vector3(-1, 1, 0), new BABYLON.Vector3(Math.PI/8, 0, Math.PI/7));
+  loadAndAttach("trident.glb", new BABYLON.Vector3(0.005, 0.005, 0.005), new BABYLON.Vector3(-0.7, 1, 0), new BABYLON.Vector3(Math.PI, 0, Math.PI));
+
+  // Move or rotate whole car group
+  carRoot.position = new BABYLON.Vector3(0, 0, 0);
+  carRoot.rotation = new BABYLON.Vector3(0, 0, 0);
+  carRoot.scaling = new BABYLON.Vector3(1, 1, 1);
+
+  return scene;
+};
+
+createScene().then((scene) => {
+  engine.runRenderLoop(() => scene.render());
+});
+
+window.addEventListener("resize", () => engine.resize());
+</script>
+</body>
+</html>
