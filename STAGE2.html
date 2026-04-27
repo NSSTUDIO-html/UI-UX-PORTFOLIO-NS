@@ -3,266 +3,1167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WarDrive3D – Car Base + HUD</title>
-
-  <!-- ✅ Babylon.js Core -->
+  <title>WarDrive3D – Level 2: Dragon's Lair</title>
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <!-- ✅ Babylon.js Loaders (needed for .glb/.gltf) -->
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-  <!-- ✅ Babylon.js GUI (optional HUD/UI) -->
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Orbitron:wght@400;700;900&family=DM+Mono&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
+      width: 100%; height: 100%;
       overflow: hidden;
-      background-color: black;
+      background: #000;
+      font-family: 'Orbitron', sans-serif;
     }
     #renderCanvas {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       touch-action: none;
+      display: block;
     }
-    #status {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-family: sans-serif;
-      font-size: 14px;
+
+    /* ── HUD OVERLAY ── */
+    #hud {
+      position: absolute; inset: 0;
+      pointer-events: none;
       z-index: 10;
     }
-  /* 🔥 Common button style */
-button {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 30%;
-  background-color: rgba(20, 20, 20, 0.7);
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  z-index: 5;
-}
 
-/* Hover effects */
-button:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
-  background-color: rgba(30, 30, 30, 0.9);
-}
+    /* ── HEALTH BARS ── */
+    .bar-wrap {
+      position: absolute;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    #car-hud { top: 18px; left: 18px; }
+    #dragon-hud { top: 18px; right: 18px; align-items: flex-end; }
 
-/* Weapon buttons */
-#v { bottom: 0; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/ae/PEO_M249_Para_ACOG.jpg'); }
-#w { bottom: 70px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMmvVW7ftU7mlDPgN59P9mEVxi0tvK6wSzz_v705SK4b1Y8cfurn4kjjI&s=10'); }
-#p { bottom: 140px; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/78/A-4_Skyhawk_rocket_pod.JPG'); }
-#s { bottom: 210px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyxGwjULw3T6N-g_Ob4jFJ5oYvLOMqVDehoUSYDjaN8sKcZotBQujjSYG3&s=10'); }
+    .entity-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      color: #fff;
+      text-shadow: 0 0 10px currentColor;
+    }
+    #car-hud .entity-label { color: #00eaff; text-shadow: 0 0 12px #00eaff; }
+    #dragon-hud .entity-label { color: #ff4444; text-shadow: 0 0 12px #ff4444; }
 
-#t { bottom: 0; right: 70px; background-image: url('https://media.sketchfab.com/models/5432b5c920444c2f96feb4c7e014fa74/thumbnails/f88199126dc544079a7f0347016e27f1/2b44de7de3684d7f8e2a4b63ba3cbb57.jpeg'); }
-#bo { bottom: 70px; right: 70px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQbp56wkjSBP8Fy8ZSSUGnE7_S2Htl0YgGQM4dLZebfNADD_3Qt7az_ixO&s=10'); }
-#wa { bottom: 140px; right: 70px; background-image: url('https://www-cdn.djiits.com/cms/uploads/ef97699c719414c2138ae8cca2806760.png'); }
-#as { bottom: 0; right: 135px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0pHWc1JWwbmqBxN5qV7KUbujaqOwGGuJK1Y3NrtO91A&s=10'); }
-#tri { bottom: 0; right: 200px; background-image: url('https://p.turbosquid.com/ts-thumb/os/knJfkO/GhOSWi8Z/main_0/png/1473691287/1920x1080/fit_q87/8f64475d53491ed3294c5585d4177871b677987b/main_0.jpg'); }
+    .bar-outer {
+      width: 240px; height: 18px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-inner {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+    #car-hp-bar { background: linear-gradient(90deg, #00eaff, #0088cc); box-shadow: 0 0 10px #00eaff88; width: 100%; }
+    #dragon-hp-bar { background: linear-gradient(90deg, #ff6600, #ff2200); box-shadow: 0 0 10px #ff440088; width: 100%; }
 
-/* 🌌 Futuristic Toggle Control */
-#toggle {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #0a0a0a 50%, #000 100%);
-  padding: 25px;
-  border: 2px solid #00eaff;
-  box-shadow:
-    0 0 25px rgba(0, 255, 255, 0.7),
-    inset 0 0 10px rgba(0, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 5;
-}
+    .bar-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 2px;
+    }
 
-#toggle:hover {
-  box-shadow:
-    0 0 35px rgba(0, 255, 255, 0.9),
-    0 0 60px rgba(0, 255, 255, 0.4),
-    inset 0 0 15px rgba(0, 255, 255, 0.6);
-  transform: scale(1.05);
-}
+    .shield-bar-outer { width: 240px; height: 8px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    #car-shield-bar { background: linear-gradient(90deg, #aa00ff, #5500cc); width: 100%; height: 100%; transition: width 0.3s; }
 
-#sw {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #111 30%, #333 100%);
-  box-shadow:
-    inset 3px 3px 8px #000,
-    inset -3px -3px 8px #444,
-    0 0 5px #00eaff;
-  transition: all 0.4s ease;
-}
+    /* ── ACTIVE WEAPON INDICATOR ── */
+    #active-weapon {
+      position: absolute;
+      bottom: 220px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      border: 1px solid rgba(0,234,255,0.4);
+      border-radius: 8px;
+      padding: 6px 18px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 3px;
+      color: #00eaff;
+      text-shadow: 0 0 10px #00eaff;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
 
-#toggle:hover #sw {
-  background: radial-gradient(circle, #00ffff 40%, #007777 100%);
-  box-shadow:
-    0 0 25px #00ffff,
-    inset 0 0 10px #00cccc;
-  transform: scale(1.25) rotate(45deg);
-}
+    /* ── AMMO BAR ── */
+    #ammo-display {
+      position: absolute;
+      bottom: 185px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 5px;
+      pointer-events: none;
+    }
+    .ammo-pip {
+      width: 8px; height: 18px;
+      background: #00eaff;
+      border-radius: 2px;
+      box-shadow: 0 0 6px #00eaff;
+      transition: opacity 0.2s;
+    }
+    .ammo-pip.spent { opacity: 0.15; background: #444; box-shadow: none; }
+
+    /* ── KILL / EVENT LOG ── */
+    #event-log {
+      position: absolute;
+      top: 100px; left: 50%; transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .event-msg {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow: 0 0 20px #ff4400;
+      animation: fadeMsg 2.5s forwards;
+    }
+    @keyframes fadeMsg {
+      0% { opacity: 0; transform: scale(0.8) translateY(0); }
+      20% { opacity: 1; transform: scale(1.05) translateY(-8px); }
+      70% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+
+    /* ── DAMAGE FLASH ── */
+    #damage-flash {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(255,0,0,0.6) 100%);
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    /* ── KILL SCORE ── */
+    #score-display {
+      position: absolute;
+      top: 18px; left: 50%; transform: translateX(-50%);
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 15px;
+      letter-spacing: 5px;
+      color: rgba(255,255,255,0.5);
+      pointer-events: none;
+    }
+    #score-display span { color: #fff; font-size: 22px; }
+
+    /* ── CROSSHAIR ── */
+    #crosshair {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    #crosshair svg { width: 40px; height: 40px; }
+
+    /* ── STATUS BAR ── */
+    #status {
+      position: absolute;
+      top: 10px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'DM Mono', monospace;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* ── WEAPON BUTTONS ── */
+    .weapon-btn {
+      position: absolute;
+      width: 52px; height: 52px;
+      border: 2px solid rgba(0,234,255,0.3);
+      border-radius: 12px;
+      background-color: rgba(10,10,20,0.8);
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 8px rgba(0,234,255,0.2), inset 0 0 8px rgba(0,0,0,0.6);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      z-index: 15;
+      pointer-events: all;
+      overflow: hidden;
+    }
+    .weapon-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(0,234,255,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .weapon-btn:hover {
+      border-color: #00eaff;
+      box-shadow: 0 0 18px rgba(0,234,255,0.6), inset 0 0 10px rgba(0,234,255,0.1);
+      transform: scale(1.1) translateY(-2px);
+    }
+    .weapon-btn.active {
+      border-color: #ffcc00;
+      box-shadow: 0 0 20px rgba(255,200,0,0.7), inset 0 0 10px rgba(255,200,0,0.1);
+    }
+    .weapon-btn.on-cooldown {
+      filter: grayscale(80%) brightness(0.5);
+      pointer-events: none;
+    }
+    .weapon-btn .cd-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.7);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: #fff;
+      text-align: center;
+      padding: 1px 0;
+      pointer-events: none;
+    }
+    .weapon-key {
+      position: absolute; top: 2px; left: 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; color: rgba(255,255,255,0.5);
+      pointer-events: none;
+    }
+
+    /* Button positions — right cluster */
+    #btn-v   { bottom: 10px;  right: 10px; }
+    #btn-w   { bottom: 72px;  right: 10px; }
+    #btn-p   { bottom: 134px; right: 10px; }
+    #btn-s   { bottom: 196px; right: 10px; }
+    #btn-t   { bottom: 10px;  right: 72px; }
+    #btn-bo  { bottom: 72px;  right: 72px; }
+    #btn-wa  { bottom: 134px; right: 72px; }
+    #btn-as  { bottom: 10px;  right: 134px; }
+    #btn-tri { bottom: 10px;  right: 196px; }
+
+    /* ── TOGGLE / DRIVE BUTTON ── */
+    #toggle {
+      position: absolute;
+      bottom: 15px; left: 15px;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #1a1a2e 0%, #000 70%);
+      border: 2px solid #00eaff;
+      box-shadow: 0 0 20px rgba(0,234,255,0.5), inset 0 0 10px rgba(0,234,255,0.2);
+      cursor: pointer;
+      z-index: 15;
+      pointer-events: all;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 2px;
+      transition: all 0.3s ease;
+    }
+    #toggle:hover {
+      box-shadow: 0 0 35px rgba(0,234,255,0.8), inset 0 0 15px rgba(0,234,255,0.3);
+      transform: scale(1.05);
+    }
+    #toggle.driving {
+      border-color: #ffcc00;
+      box-shadow: 0 0 25px rgba(255,200,0,0.7), inset 0 0 15px rgba(255,200,0,0.2);
+    }
+    #toggle-icon {
+      font-size: 22px;
+      transition: transform 0.4s;
+    }
+    #toggle-label {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #00eaff;
+      transition: color 0.3s;
+    }
+    #toggle.driving #toggle-label { color: #ffcc00; }
+
+    /* ── WASD KEYS ── */
+    #wasd-hint {
+      position: absolute;
+      bottom: 105px; left: 15px;
+      pointer-events: none;
+    }
+    .key-row { display: flex; justify-content: center; gap: 3px; margin-bottom: 3px; }
+    .key {
+      width: 26px; height: 26px;
+      background: rgba(0,234,255,0.1);
+      border: 1px solid rgba(0,234,255,0.4);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 14px;
+      color: #00eaff;
+      transition: all 0.1s;
+    }
+    .key.pressed { background: rgba(0,234,255,0.35); box-shadow: 0 0 8px #00eaff; }
+
+    /* ── DRAGON ATTACK WARN ── */
+    #dragon-warn {
+      position: absolute;
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    #dragon-warn svg { width: 80px; height: 80px; }
+
+    /* ── GAME OVER / WIN SCREENS ── */
+    #overlay-screen {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 100;
+      pointer-events: all;
+      display: none;
+    }
+    #overlay-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      letter-spacing: 8px;
+      margin-bottom: 12px;
+    }
+    #overlay-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    #restart-btn {
+      padding: 14px 40px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 4px;
+      border: 2px solid #00eaff;
+      background: transparent;
+      color: #00eaff;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+      pointer-events: all;
+    }
+    #restart-btn:hover {
+      background: rgba(0,234,255,0.15);
+      box-shadow: 0 0 20px rgba(0,234,255,0.5);
+    }
+
+    /* ── MINI MAP ── */
+    #minimap {
+      position: absolute;
+      bottom: 15px; left: 110px;
+      width: 90px; height: 90px;
+      border: 1px solid rgba(0,234,255,0.3);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.6);
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #minimap canvas { width: 100%; height: 100%; }
+    #minimap-label {
+      position: absolute; top: 2px; left: 4px;
+      font-size: 8px; color: rgba(0,234,255,0.5);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── LOADING SCREEN ── */
+    #loading-screen {
+      position: absolute; inset: 0;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px;
+      z-index: 200;
+    }
+    #loading-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      letter-spacing: 8px;
+      color: #00eaff;
+      text-shadow: 0 0 30px #00eaff;
+    }
+    #loading-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: rgba(0,234,255,0.5);
+      letter-spacing: 2px;
+    }
+    #loading-bar-outer {
+      width: 280px; height: 3px;
+      background: rgba(0,234,255,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #loading-bar-inner {
+      height: 100%; width: 0%;
+      background: #00eaff;
+      box-shadow: 0 0 8px #00eaff;
+      transition: width 0.4s ease;
+    }
   </style>
 </head>
 <body>
-  <canvas id="renderCanvas"></canvas>
-  <div id="status">🚗 Loading Car...</div>
-  <!-- vulcan--><button id="v"></button>
-  <!-- wrecker--><button id="w"></button>
-  <!-- pods--><button id="p"></button>
-  <!-- seeker--><button id="s"></button>
-  <!-- thunder--><button id="t"></button>
-  <!-- blackout--><button id="bo"></button>
-  <!-- wasp--><button id="wa"></button>
-  <!-- aegisheild--><button id="as"></button>
-  <!-- trident--><button id="tri"></button>
-  
-   <!-- car controls--><div id="toggle"><div id="sw"></div></div>
-  
-  <script>
+
+<!-- Loading -->
+<div id="loading-screen">
+  <div id="loading-title">WARDRIVE 3D</div>
+  <div id="loading-sub">LEVEL 2 — DRAGON'S LAIR</div>
+  <div id="loading-bar-outer"><div id="loading-bar-inner"></div></div>
+</div>
+
+<canvas id="renderCanvas"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <!-- Score -->
+  <div id="score-display">SCORE &nbsp; <span id="score-val">0</span></div>
+
+  <!-- Car health -->
+  <div class="bar-wrap" id="car-hud">
+    <div class="entity-label">🚗 BUMBLEBEE</div>
+    <div class="bar-outer"><div class="bar-inner" id="car-hp-bar"></div></div>
+    <div class="bar-text" id="car-hp-text">HP: 100 / 100</div>
+    <div class="shield-bar-outer"><div id="car-shield-bar"></div></div>
+    <div class="bar-text" id="car-shield-text">SHIELD: 100</div>
+  </div>
+
+  <!-- Dragon health -->
+  <div class="bar-wrap" id="dragon-hud">
+    <div class="entity-label">🐉 DRAGON</div>
+    <div class="bar-outer" style="direction:rtl"><div class="bar-inner" id="dragon-hp-bar"></div></div>
+    <div class="bar-text" id="dragon-hp-text" style="text-align:right">HP: 500 / 500</div>
+  </div>
+
+  <!-- Active weapon -->
+  <div id="active-weapon">—</div>
+
+  <!-- Ammo -->
+  <div id="ammo-display"></div>
+
+  <!-- Crosshair -->
+  <div id="crosshair">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="8" stroke="#00eaff" stroke-width="1" opacity="0.8"/>
+      <line x1="20" y1="4" x2="20" y2="14" stroke="#00eaff" stroke-width="1.5"/>
+      <line x1="20" y1="26" x2="20" y2="36" stroke="#00eaff" stroke-width="1.5"/>
+      <line x1="4" y1="20" x2="14" y2="20" stroke="#00eaff" stroke-width="1.5"/>
+      <line x1="26" y1="20" x2="36" y2="20" stroke="#00eaff" stroke-width="1.5"/>
+    </svg>
+  </div>
+
+  <!-- Event log -->
+  <div id="event-log"></div>
+
+  <!-- Damage flash -->
+  <div id="damage-flash"></div>
+
+  <!-- Dragon warn -->
+  <div id="dragon-warn">
+    <svg viewBox="0 0 80 80" fill="none">
+      <polygon points="40,8 72,68 8,68" stroke="#ff4400" stroke-width="3" fill="rgba(255,68,0,0.1)"/>
+      <text x="36" y="58" font-size="28" fill="#ff4400">!</text>
+    </svg>
+  </div>
+
+  <!-- WASD hint -->
+  <div id="wasd-hint">
+    <div class="key-row"><div class="key" id="key-w">W</div></div>
+    <div class="key-row">
+      <div class="key" id="key-a">A</div>
+      <div class="key" id="key-s">S</div>
+      <div class="key" id="key-d">D</div>
+    </div>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap">
+    <div id="minimap-label">MAP</div>
+    <canvas id="mm-canvas" width="90" height="90"></canvas>
+  </div>
+</div>
+
+<!-- Status -->
+<div id="status">⏳ Initializing...</div>
+
+<!-- Weapon Buttons -->
+<button class="weapon-btn" id="btn-v"   style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/a/ae/PEO_M249_Para_ACOG.jpg')"><span class="weapon-key">1</span></button>
+<button class="weapon-btn" id="btn-w"   style="background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMmvVW7ftU7mlDPgN59P9mEVxi0tvK6wSzz_v705SK4b1Y8cfurn4kjjI&s=10')"><span class="weapon-key">2</span></button>
+<button class="weapon-btn" id="btn-p"   style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/7/78/A-4_Skyhawk_rocket_pod.JPG')"><span class="weapon-key">3</span></button>
+<button class="weapon-btn" id="btn-s"   style="background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyxGwjULw3T6N-g_Ob4jFJ5oYvLOMqVDehoUSYDjaN8sKcZotBQujjSYG3&s=10')"><span class="weapon-key">4</span></button>
+<button class="weapon-btn" id="btn-t"   style="background-image:url('https://media.sketchfab.com/models/5432b5c920444c2f96feb4c7e014fa74/thumbnails/f88199126dc544079a7f0347016e27f1/2b44de7de3684d7f8e2a4b63ba3cbb57.jpeg')"><span class="weapon-key">5</span></button>
+<button class="weapon-btn" id="btn-bo"  style="background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQbp56wkjSBP8Fy8ZSSUGnE7_S2Htl0YgGQM4dLZebfNADD_3Qt7az_ixO&s=10')"><span class="weapon-key">6</span></button>
+<button class="weapon-btn" id="btn-wa"  style="background-image:url('https://www-cdn.djiits.com/cms/uploads/ef97699c719414c2138ae8cca2806760.png')"><span class="weapon-key">7</span></button>
+<button class="weapon-btn" id="btn-as"  style="background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0pHWc1JWwbmqBxN5qV7KUbujaqOwGGuJK1Y3NrtO91A&s=10')"><span class="weapon-key">8</span></button>
+<button class="weapon-btn" id="btn-tri" style="background-image:url('https://p.turbosquid.com/ts-thumb/os/knJfkO/GhOSWi8Z/main_0/png/1473691287/1920x1080/fit_q87/8f64475d53491ed3294c5585d4177871b677987b/main_0.jpg')"><span class="weapon-key">9</span></button>
+
+<!-- Toggle -->
+<div id="toggle" onclick="toggleDrive()">
+  <div id="toggle-icon">🚗</div>
+  <div id="toggle-label">DRIVE</div>
+</div>
+
+<!-- Game Over / Win -->
+<div id="overlay-screen">
+  <div id="overlay-title"></div>
+  <div id="overlay-sub"></div>
+  <button id="restart-btn" onclick="restartGame()">▶ PLAY AGAIN</button>
+</div>
+
+<script>
+// ════════════════════════════════════
+//  GAME STATE
+// ════════════════════════════════════
+const GS = {
+  carHp: 100, carHpMax: 100,
+  carShield: 100, carShieldMax: 100,
+  dragonHp: 500, dragonHpMax: 500,
+  score: 0,
+  driving: false,
+  gameOver: false,
+  activeWeapon: null,
+  dragonAlive: true,
+  dragonAttackTimer: 0,
+  dragonAttackInterval: 3.5,
+  dragonPhase: 1,    // 1=normal 2=enraged
+  shieldRegen: false,
+  shieldRegenTimer: 0,
+};
+
+// Weapon definitions
+const WEAPONS = {
+  v:   { name: "VULCAN CANNON",   dmg: [12,18], cd: 0.8,  ammo: 30, color: "#00eaff", sfx: "rapid" },
+  w:   { name: "WRECKER SHOTGUN", dmg: [20,35], cd: 1.5,  ammo: 8,  color: "#ff8800", sfx: "boom"  },
+  p:   { name: "ROCKET PODS",     dmg: [40,60], cd: 2.5,  ammo: 6,  color: "#ff4444", sfx: "rocket"},
+  s:   { name: "SEEKER MISSILE",  dmg: [55,75], cd: 3.0,  ammo: 4,  color: "#aa44ff", sfx: "lock"  },
+  t:   { name: "THUNDER RAIL",    dmg: [70,90], cd: 4.0,  ammo: 3,  color: "#ffcc00", sfx: "zap"   },
+  bo:  { name: "BLACKOUT EMP",    dmg: [30,50], cd: 5.0,  ammo: 2,  color: "#44ffaa", sfx: "emp",  stun: true },
+  wa:  { name: "WASP DRONE",      dmg: [25,40], cd: 6.0,  ammo: 2,  color: "#88ff00", sfx: "drone" },
+  as:  { name: "AEGIS SHIELD",    dmg: [0,0],   cd: 8.0,  ammo: 1,  color: "#4488ff", sfx: "shield", heal: true },
+  tri: { name: "TRIDENT BURST",   dmg: [80,120],cd: 7.0,  ammo: 2,  color: "#ff00ff", sfx: "tri"  },
+};
+
+// Cooldown state per weapon
+const wCooldowns = {};
+const wAmmo = {};
+Object.keys(WEAPONS).forEach(k => {
+  wCooldowns[k] = 0;
+  wAmmo[k] = WEAPONS[k].ammo;
+});
+
+// ════════════════════════════════════
+//  BABYLON SETUP
+// ════════════════════════════════════
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
-let scene, carRoot;
+let scene, carRoot, dragonMesh, camera;
+let projectiles = [];
+let dragonFX = null;
+let carStunned = false, dragonStunned = false;
+
+// Keys
+const keys = {};
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+  updateKeyVisuals();
+  // number key shortcuts
+  const kmap = {'1':'v','2':'w','3':'p','4':'s','5':'t','6':'bo','7':'wa','8':'as','9':'tri'};
+  if (kmap[e.key]) fireWeapon(kmap[e.key]);
+  if (e.key === ' ') fireWeapon(GS.activeWeapon || 'v');
+});
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+  updateKeyVisuals();
+});
+
+function updateKeyVisuals() {
+  ['w','a','s','d'].forEach(k => {
+    document.getElementById('key-'+k)?.classList.toggle('pressed', !!keys[k]);
+  });
+}
 
 const createScene = async () => {
   scene = new BABYLON.Scene(engine);
-  scene.clearColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+  scene.clearColor = new BABYLON.Color4(0.02, 0.02, 0.04, 1);
+  scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
+  scene.fogColor = new BABYLON.Color3(0.05, 0.02, 0.08);
+  scene.fogDensity = 0.008;
 
   // Camera
-  const camera = new BABYLON.ArcRotateCamera(
-    "camera",
-    Math.PI / 2,
-    Math.PI / 3,
-    10,
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
+  camera = new BABYLON.ArcRotateCamera("cam", Math.PI/2, Math.PI/3.5, 12, new BABYLON.Vector3(0,1,0), scene);
+  camera.lowerRadiusLimit = 5;
+  camera.upperRadiusLimit = 30;
   camera.attachControl(canvas, true);
 
   // Lights
-  const light1 = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
-  light1.intensity = 0.8;
-  const light2 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(5, 5, 5), scene);
-  light2.intensity = 0.8;
+  const hemi = new BABYLON.HemisphericLight("h", new BABYLON.Vector3(0,1,0), scene);
+  hemi.intensity = 0.5;
+  hemi.groundColor = new BABYLON.Color3(0.05, 0.0, 0.1);
+
+  const sun = new BABYLON.DirectionalLight("sun", new BABYLON.Vector3(-1,-2,-1), scene);
+  sun.intensity = 1.2;
+  sun.diffuse = new BABYLON.Color3(1, 0.9, 0.7);
+
+  const dragonGlow = new BABYLON.PointLight("dragonGlow", new BABYLON.Vector3(0,3,10), scene);
+  dragonGlow.diffuse = new BABYLON.Color3(1,0.3,0.1);
+  dragonGlow.intensity = 2;
 
   // Ground
   const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 200, height: 200 }, scene);
+  const gMat = new BABYLON.StandardMaterial("gMat", scene);
+  gMat.diffuseColor = new BABYLON.Color3(0.08, 0.06, 0.1);
+  gMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.05);
+  ground.material = gMat;
 
-const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+  // Glow layer
+  const gl = new BABYLON.GlowLayer("glow", scene);
+  gl.intensity = 0.4;
 
-// Add image texture
-const texture = new BABYLON.Texture("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQqka0DOtSw0XelV0TFGBko7hReUcOlnDnOBAK0aYCIXefOo7CRWU5eqkBx&s=10", scene);
-groundMat.diffuseTexture = texture;
-
-// Optional: repeat texture (tiling)
-texture.uScale = 1;
-texture.vScale = 1;
-
-ground.material = groundMat;
-  
-  BABYLON.SceneLoader.ImportMesh(
-  "",
-  "",
-  "dragon.glb",
-  scene,
-  function (meshes) {
-    const mesh = meshes[0];
-    mesh.scaling = new BABYLON.Vector3(20,20,20);
-      mesh.position = new BABYLON.Vector3(0,0,10);
-      mesh.rotation = new BABYLON.Vector3(0,Math.PI,0);
-    }
-);
-  
-  BABYLON.SceneLoader.ImportMesh(
-  "",
-  "",
-  "the_sword_in_the_stone.glb",
-  scene,
-  function (meshes) {
-    const mesh = meshes[0];
-    mesh.scaling = new BABYLON.Vector3(5,5,5);
-      mesh.position = new BABYLON.Vector3(10,0,0);
-      mesh.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
-    }
-);
-  
-  BABYLON.SceneLoader.ImportMesh(
-  "",
-  "",
-  "rock_on_ground.glb",
-  scene,
-  function (meshes) {
-    const mesh = meshes[0];
-    mesh.scaling = new BABYLON.Vector3(10,10,10);
-      mesh.position = new BABYLON.Vector3(1000,30,100);
-      mesh.rotation = new BABYLON.Vector3(0,0,0);
-    }
-);
-  
-  
-  // Create one root node for all
+  // ── Car (box proxy since .glb may not be local) ──
   carRoot = new BABYLON.TransformNode("carRoot", scene);
+  carRoot.position = new BABYLON.Vector3(0, 0, -50);
 
-  const basePath = "./";
+  // Car body visual proxy
+  const carBody = BABYLON.MeshBuilder.CreateBox("carBody", {width:2, height:0.9, depth:4.2}, scene);
+  const carMat = new BABYLON.StandardMaterial("carMat", scene);
+  carMat.diffuseColor = new BABYLON.Color3(1, 0.85, 0.0);
+  carMat.emissiveColor = new BABYLON.Color3(0.3, 0.2, 0.0);
+  carMat.specularColor = new BABYLON.Color3(1,1,0.5);
+  carBody.material = carMat;
+  carBody.parent = carRoot;
+  carBody.position.y = 0.45;
 
-  // Helper to load and attach model
-  const loadAndAttach = (file, scale, pos, rot) => {
-    BABYLON.SceneLoader.ImportMesh("", basePath, file, scene, (meshes) => {
-      const m = meshes[0];
-      m.scaling = scale;
-      m.position = pos;
-      m.rotation = rot;
-      m.parent = carRoot; // attach to root
-    });
+  const carTop = BABYLON.MeshBuilder.CreateBox("carTop", {width:1.4, height:0.7, depth:2}, scene);
+  carTop.material = carMat;
+  carTop.parent = carRoot;
+  carTop.position = new BABYLON.Vector3(0, 1.1, -0.2);
+
+  // Wheels
+  for(let x of [-1.1,1.1]) for(let z of [-1.3,1.3]) {
+    const wh = BABYLON.MeshBuilder.CreateCylinder("wh", {diameter:0.7, height:0.4, tessellation:12}, scene);
+    const wm = new BABYLON.StandardMaterial("wm", scene);
+    wm.diffuseColor = new BABYLON.Color3(0.15,0.15,0.15);
+    wh.material = wm;
+    wh.rotation.z = Math.PI/2;
+    wh.parent = carRoot;
+    wh.position = new BABYLON.Vector3(x, 0.1, z);
+  }
+
+  // Try loading actual models
+  const tryLoad = (file, scale, pos, rot, parent) => {
+    try {
+      BABYLON.SceneLoader.ImportMesh("", "./", file, scene, (meshes) => {
+        const m = meshes[0];
+        if (!m) return;
+        m.scaling = scale; m.position = pos; m.rotation = rot;
+        if (parent) m.parent = parent;
+      }, null, () => {/* silently fail */});
+    } catch(e) {}
   };
 
-  // Main Car
-  BABYLON.SceneLoader.ImportMesh("", basePath, "bumblebee_tf1_2007_vehicle_mode.glb", scene, (meshes) => {
-    const car = meshes[0];
-    car.position = new BABYLON.Vector3(0, 0, 0);
-    car.scaling = new BABYLON.Vector3(1, 1, 1);
-    car.parent = carRoot;
-    document.getElementById("status").innerText = "✅ Car Loaded Successfully!";
-  });
+  tryLoad("bumblebee_tf1_2007_vehicle_mode.glb", new BABYLON.Vector3(1,1,1), new BABYLON.Vector3(0,0,0), new BABYLON.Vector3(0,0,0), carRoot);
+  tryLoad("pkp.glb", new BABYLON.Vector3(0.2,0.2,0.2), new BABYLON.Vector3(0.6,1.8,-0.6), new BABYLON.Vector3(0,0,0), carRoot);
+  tryLoad("missile_launcher.glb", new BABYLON.Vector3(0.05,0.05,0.05), new BABYLON.Vector3(-0.5,0.7,0), new BABYLON.Vector3(0,Math.PI/2,0), carRoot);
+  tryLoad("egyptian_shield.glb", new BABYLON.Vector3(1,1,1), new BABYLON.Vector3(-1,1,0), new BABYLON.Vector3(Math.PI/8,0,Math.PI/7), carRoot);
 
-  // Weapons + Add-ons
-  loadAndAttach("pkp.glb", new BABYLON.Vector3(0.2, 0.2, 0.2), new BABYLON.Vector3(0.6, 1.8, -0.6), new BABYLON.Vector3(0,0,0));
-  loadAndAttach("stylized_retro-futuristic_shotgun-1.glb", new BABYLON.Vector3(0.5, 0.5, 0.5), new BABYLON.Vector3(-0.7, 0.6, 2), new BABYLON.Vector3(0, Math.PI/2, 0));
-  loadAndAttach("rl202.glb", new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 1, -3), new BABYLON.Vector3(0,0,0));
-  loadAndAttach("missile_launcher.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(-0.5, 0.7, 0), new BABYLON.Vector3(0, Math.PI/2, 0));
-  loadAndAttach("upgraded_laser_energy_cannon.glb", new BABYLON.Vector3(0.3, 0.3, 0.3), new BABYLON.Vector3(-0.7, 0, -3), new BABYLON.Vector3(0, Math.PI, 0));
-  loadAndAttach("sci-fi_emp_grenade.glb", new BABYLON.Vector3(0.7, 0.7, 0.7), new BABYLON.Vector3(1.4, 0.6, 1), new BABYLON.Vector3(Math.PI/2, Math.PI, 0));
-  loadAndAttach("mirrors_edge_catalyst_vtol.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(1, 1, -2), new BABYLON.Vector3(Math.PI/2, Math.PI/2, 0));
-  loadAndAttach("egyptian_shield.glb", new BABYLON.Vector3(1, 1, 1), new BABYLON.Vector3(-1, 1, 0), new BABYLON.Vector3(Math.PI/8, 0, Math.PI/7));
-  loadAndAttach("trident.glb", new BABYLON.Vector3(0.005, 0.005, 0.005), new BABYLON.Vector3(-0.7, 1, 0), new BABYLON.Vector3(Math.PI, 0, Math.PI));
+  // ── Dragon (box proxy) ──
+  dragonMesh = new BABYLON.TransformNode("dragonRoot", scene);
+  dragonMesh.position = new BABYLON.Vector3(0, 1, 10);
 
-  // Move or rotate whole car group
-  carRoot.position = new BABYLON.Vector3(0, 0, -50);
-  carRoot.rotation = new BABYLON.Vector3(0, 0, 0);
-  carRoot.scaling = new BABYLON.Vector3(1, 1, 1);
+  const dBody = BABYLON.MeshBuilder.CreateBox("dBody", {width:4, height:3, depth:6}, scene);
+  const dMat = new BABYLON.StandardMaterial("dMat", scene);
+  dMat.diffuseColor = new BABYLON.Color3(0.6, 0.1, 0.05);
+  dMat.emissiveColor = new BABYLON.Color3(0.15, 0.02, 0.0);
+  dMat.specularColor = new BABYLON.Color3(0.8, 0.3, 0.1);
+  dBody.material = dMat;
+  dBody.parent = dragonMesh;
+  dBody.position.y = 0.5;
+
+  // Dragon head
+  const dHead = BABYLON.MeshBuilder.CreateBox("dHead", {width:2.2, height:1.8, depth:2.5}, scene);
+  dHead.material = dMat;
+  dHead.parent = dragonMesh;
+  dHead.position = new BABYLON.Vector3(0, 1.5, -3.5);
+
+  // Dragon wings
+  for(let sx of [-1,1]) {
+    const wing = BABYLON.MeshBuilder.CreateBox("wing", {width:5, height:0.2, depth:3}, scene);
+    const wMat = new BABYLON.StandardMaterial("wMat", scene);
+    wMat.diffuseColor = new BABYLON.Color3(0.45, 0.08, 0.04);
+    wMat.alpha = 0.85;
+    wing.material = wMat;
+    wing.parent = dragonMesh;
+    wing.position = new BABYLON.Vector3(sx*4.5, 1.5, 0);
+    wing.rotation = new BABYLON.Vector3(0, 0, sx * 0.25);
+  }
+
+  // Dragon eyes glow
+  for(let ex of [-0.5,0.5]) {
+    const eye = BABYLON.MeshBuilder.CreateSphere("eye", {diameter:0.3}, scene);
+    const eMat = new BABYLON.StandardMaterial("eMat", scene);
+    eMat.emissiveColor = new BABYLON.Color3(1, 0.4, 0);
+    eye.material = eMat;
+    eye.parent = dragonMesh;
+    eye.position = new BABYLON.Vector3(ex, 1.7, -4.5);
+  }
+
+  tryLoad("dragon.glb", new BABYLON.Vector3(20,20,20), new BABYLON.Vector3(0,0,0), new BABYLON.Vector3(0,Math.PI,0), dragonMesh);
+
+  // Sword & rock
+  tryLoad("the_sword_in_the_stone.glb", new BABYLON.Vector3(5,5,5), new BABYLON.Vector3(10,0,0), new BABYLON.Vector3(0,Math.PI/2,0), null);
+
+  // Fog/ambient particles for atmosphere
+  const ps = new BABYLON.ParticleSystem("ps", 200, scene);
+  ps.particleTexture = new BABYLON.Texture("https://www.babylonjs.com/assets/Flare.png", scene);
+  ps.emitter = new BABYLON.Vector3(0, 0, 0);
+  ps.minEmitBox = new BABYLON.Vector3(-50, 0, -50);
+  ps.maxEmitBox = new BABYLON.Vector3(50, 1, 50);
+  ps.color1 = new BABYLON.Color4(0.8, 0.3, 0.1, 0.05);
+  ps.color2 = new BABYLON.Color4(0.3, 0.1, 0.8, 0.03);
+  ps.minSize = 0.5; ps.maxSize = 1.5;
+  ps.minLifeTime = 3; ps.maxLifeTime = 6;
+  ps.emitRate = 20;
+  ps.minEmitPower = 0.1; ps.maxEmitPower = 0.3;
+  ps.direction1 = new BABYLON.Vector3(0, 1, 0);
+  ps.direction2 = new BABYLON.Vector3(0.5, 1, 0.5);
+  ps.start();
+
+  document.getElementById("status").innerText = "✅ Ready!";
+  setTimeout(()=>{ document.getElementById("status").style.display="none"; }, 2500);
+  document.getElementById("loading-bar-inner").style.width = "100%";
+  setTimeout(()=>{ document.getElementById("loading-screen").style.display="none"; }, 600);
 
   return scene;
 };
 
-createScene().then((scene) => {
-  engine.runRenderLoop(() => scene.render());
+// ════════════════════════════════════
+//  GAME LOOP
+// ════════════════════════════════════
+let lastT = performance.now();
+
+const gameLoop = () => {
+  const now = performance.now();
+  const dt = Math.min((now - lastT) / 1000, 0.1);
+  lastT = now;
+  if (GS.gameOver) return;
+
+  // Car movement
+  if (GS.driving && carRoot && !carStunned) {
+    const spd = 8;
+    const rotSpd = 1.8;
+    if (keys['w'] || keys['arrowup'])    carRoot.position.z += Math.cos(carRoot.rotation.y) * spd * dt;
+    if (keys['s'] || keys['arrowdown'])  carRoot.position.z -= Math.cos(carRoot.rotation.y) * spd * dt;
+    if (keys['w'] || keys['arrowup'])    carRoot.position.x += Math.sin(carRoot.rotation.y) * spd * dt;  // keep dir
+    if (keys['s'] || keys['arrowdown'])  carRoot.position.x -= Math.sin(carRoot.rotation.y) * spd * dt;
+    if (keys['a'] || keys['arrowleft'])  carRoot.rotation.y -= rotSpd * dt;
+    if (keys['d'] || keys['arrowright']) carRoot.rotation.y += rotSpd * dt;
+    // Camera follow
+    if (camera) {
+      camera.target = BABYLON.Vector3.Lerp(camera.target, carRoot.position.add(new BABYLON.Vector3(0,1,0)), 0.08);
+    }
+  }
+
+  // Cooldown tick
+  Object.keys(wCooldowns).forEach(k => {
+    if (wCooldowns[k] > 0) {
+      wCooldowns[k] = Math.max(0, wCooldowns[k] - dt);
+      const btn = document.getElementById("btn-"+k);
+      if (btn) {
+        if (wCooldowns[k] > 0) {
+          btn.classList.add("on-cooldown");
+          let cd = btn.querySelector(".cd-overlay");
+          if (!cd) { cd = document.createElement("div"); cd.className="cd-overlay"; btn.appendChild(cd); }
+          cd.textContent = wCooldowns[k].toFixed(1)+"s";
+        } else {
+          btn.classList.remove("on-cooldown");
+          const cd = btn.querySelector(".cd-overlay"); if(cd) cd.remove();
+        }
+      }
+    }
+  });
+
+  // Dragon AI
+  if (GS.dragonAlive && dragonMesh && !dragonStunned) {
+    GS.dragonAttackTimer -= dt;
+    // Dragon hovers and bobs
+    dragonMesh.position.y = 2 + Math.sin(now/1000 * 0.8) * 0.6;
+    // Dragon slow rotation toward car
+    if (carRoot) {
+      const dir = carRoot.position.subtract(dragonMesh.position);
+      const targetAngle = Math.atan2(dir.x, dir.z);
+      dragonMesh.rotation.y = BABYLON.Scalar.Lerp(dragonMesh.rotation.y, targetAngle + Math.PI, 0.03);
+    }
+    // Dragon attack
+    if (GS.dragonAttackTimer <= 0 && carRoot) {
+      dragonAttack();
+      GS.dragonAttackTimer = GS.dragonAttackInterval;
+      // Enrage at 40%
+      if (GS.dragonHp < GS.dragonHpMax * 0.4 && GS.dragonPhase === 1) {
+        GS.dragonPhase = 2;
+        GS.dragonAttackInterval = 2.0;
+        showEvent("🔥 DRAGON ENRAGED!", "#ff4400");
+      }
+    }
+  }
+
+  // Shield regen
+  if (GS.shieldRegen) {
+    GS.shieldRegenTimer -= dt;
+    if (GS.shieldRegenTimer <= 0) {
+      GS.carShield = Math.min(GS.carShieldMax, GS.carShield + 5);
+      GS.shieldRegenTimer = 1.5;
+      updateHUD();
+    }
+  }
+
+  // Projectile movement
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.mesh.position.addInPlace(p.vel.scale(dt));
+    p.life -= dt;
+    if (p.life <= 0) {
+      p.mesh.dispose();
+      projectiles.splice(i, 1);
+      continue;
+    }
+    // Check if dragon projectile hits car
+    if (p.fromDragon && carRoot) {
+      const dist = BABYLON.Vector3.Distance(p.mesh.position, carRoot.position);
+      if (dist < 2.5) {
+        dealDamageTocar(p.dmg);
+        p.mesh.dispose();
+        projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  updateMinimap();
+};
+
+// ════════════════════════════════════
+//  FIRE WEAPON
+// ════════════════════════════════════
+function fireWeapon(key) {
+  if (!key || GS.gameOver) return;
+  const wp = WEAPONS[key];
+  if (!wp) return;
+  if (wCooldowns[key] > 0) { showEvent("⏳ COOLING DOWN", "#888"); return; }
+  if (wAmmo[key] <= 0) { showEvent("🚫 NO AMMO — "+wp.name, "#ff4400"); return; }
+
+  GS.activeWeapon = key;
+  wCooldowns[key] = wp.cd;
+  wAmmo[key]--;
+
+  // Highlight button
+  document.querySelectorAll(".weapon-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("btn-"+key);
+  if (btn) btn.classList.add("active");
+  setTimeout(()=>{ if(btn) btn.classList.remove("active"); }, 300);
+
+  // Shield / heal weapon
+  if (wp.heal) {
+    GS.carShield = GS.carShieldMax;
+    GS.carHp = Math.min(GS.carHpMax, GS.carHp + 20);
+    GS.shieldRegen = true;
+    showEvent("🛡 AEGIS ACTIVE — SHIELDS RESTORED", wp.color);
+    spawnShieldFX();
+    updateHUD();
+    return;
+  }
+
+  // EMP / stun
+  if (wp.stun) {
+    dragonStunned = true;
+    showEvent("⚡ BLACKOUT EMP — DRAGON STUNNED!", wp.color);
+    setTimeout(()=>{ dragonStunned = false; }, 4000);
+  }
+
+  // Damage
+  const dmg = wp.dmg[0] + Math.random() * (wp.dmg[1] - wp.dmg[0]);
+  dealDamageToDragon(dmg, wp);
+
+  // Projectile FX
+  spawnProjectile(false, wp.color, 2.5, key);
+
+  // Show weapon name & ammo
+  showWeaponUI(key);
+  updateHUD();
+}
+
+function dealDamageToDragon(dmg, wp) {
+  if (!GS.dragonAlive) return;
+  GS.dragonHp = Math.max(0, GS.dragonHp - dmg);
+  showEvent(`💥 ${wp ? wp.name : 'HIT'} — ${Math.round(dmg)} DMG`, wp ? wp.color : "#fff");
+  GS.score += Math.round(dmg * 2);
+  updateHUD();
+  // Screen shake via camera offset
+  shakeCam(0.15);
+  if (GS.dragonHp <= 0) dragonDie();
+}
+
+function dragonAttack() {
+  if (!GS.dragonAlive) return;
+  // Show warning
+  const warn = document.getElementById("dragon-warn");
+  warn.style.opacity = "1";
+  setTimeout(()=>{ warn.style.opacity = "0"; }, 600);
+  spawnProjectile(true, "#ff4400", 3);
+}
+
+function dealDamageTocar(dmg) {
+  if (GS.gameOver) return;
+  // Shield absorbs first
+  if (GS.carShield > 0) {
+    const absorbed = Math.min(GS.carShield, dmg);
+    GS.carShield -= absorbed;
+    dmg -= absorbed;
+    GS.shieldRegen = false;
+    GS.shieldRegenTimer = 4;
+    setTimeout(()=>{ GS.shieldRegen = true; }, 4000);
+  }
+  if (dmg > 0) {
+    GS.carHp = Math.max(0, GS.carHp - dmg);
+    // Flash red
+    const flash = document.getElementById("damage-flash");
+    flash.style.opacity = "1";
+    setTimeout(()=>{ flash.style.opacity = "0"; }, 200);
+    showEvent(`🔥 DRAGON HIT YOU — ${Math.round(dmg + (GS.dragonPhase===2?0:0))} DMG`, "#ff4400");
+  }
+  updateHUD();
+  if (GS.carHp <= 0) carDie();
+}
+
+// ════════════════════════════════════
+//  PROJECTILE FX
+// ════════════════════════════════════
+function spawnProjectile(fromDragon, color, speed, weaponKey) {
+  if (!scene || !carRoot || !dragonMesh) return;
+  const origin = fromDragon ? dragonMesh.position.clone() : carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+  const target = fromDragon ? carRoot.position.clone().add(new BABYLON.Vector3(0,1,0)) : dragonMesh.position.clone();
+  const dir = target.subtract(origin).normalize();
+
+  const size = fromDragon ? 0.4 : 0.25;
+  const proj = BABYLON.MeshBuilder.CreateSphere("proj", {diameter: size}, scene);
+  const pMat = new BABYLON.StandardMaterial("pMat_"+Date.now(), scene);
+  const c = BABYLON.Color3.FromHexString(color.length===7 ? color : "#ff4400");
+  pMat.emissiveColor = c;
+  pMat.diffuseColor = c;
+  proj.material = pMat;
+  proj.position = origin.add(dir.scale(1.5));
+
+  projectiles.push({ mesh: proj, vel: dir.scale(speed * 15), life: 3, fromDragon, dmg: fromDragon ? (GS.dragonPhase===2 ? 18 : 12) : 0 });
+}
+
+function spawnShieldFX() {
+  if (!scene || !carRoot) return;
+  const shield = BABYLON.MeshBuilder.CreateSphere("shFX", {diameter:4, segments:8}, scene);
+  const sMat = new BABYLON.StandardMaterial("sMat", scene);
+  sMat.emissiveColor = new BABYLON.Color3(0.2, 0.5, 1);
+  sMat.alpha = 0.25;
+  shield.material = sMat;
+  shield.parent = carRoot;
+  shield.position = new BABYLON.Vector3(0,0.5,0);
+  setTimeout(()=>{ shield.dispose(); }, 3000);
+}
+
+function shakeCam(intensity) {
+  if (!camera) return;
+  const orig = camera.target.clone();
+  let n = 0;
+  const iv = setInterval(()=>{
+    camera.target = orig.add(new BABYLON.Vector3((Math.random()-0.5)*intensity, (Math.random()-0.5)*intensity*0.5, 0));
+    if (++n > 8) { camera.target = orig; clearInterval(iv); }
+  }, 40);
+}
+
+// ════════════════════════════════════
+//  DRAGON DIE / CAR DIE
+// ════════════════════════════════════
+function dragonDie() {
+  GS.dragonAlive = false;
+  GS.score += 5000;
+  showEvent("🏆 DRAGON SLAIN! +5000 BONUS", "#ffcc00");
+  if (dragonMesh) {
+    const dMeshes = dragonMesh.getChildMeshes();
+    dMeshes.forEach(m => {
+      let t = 0;
+      const iv = setInterval(()=>{
+        m.position.y -= 0.05;
+        if(m.material) m.material.alpha = Math.max(0, 1 - t/30);
+        if(++t > 30) { clearInterval(iv); m.dispose(); }
+      }, 50);
+    });
+  }
+  setTimeout(()=>{ showOverlay("VICTORY!", "Dragon defeated! Score: " + GS.score, false); }, 2500);
+}
+
+function carDie() {
+  GS.gameOver = true;
+  showOverlay("GAME OVER", "The dragon won. Final score: " + GS.score, true);
+}
+
+// ════════════════════════════════════
+//  HUD UPDATES
+// ════════════════════════════════════
+function updateHUD() {
+  // Car HP
+  const hpPct = (GS.carHp / GS.carHpMax) * 100;
+  document.getElementById("car-hp-bar").style.width = hpPct + "%";
+  const hpBar = document.getElementById("car-hp-bar");
+  if (hpPct > 60) hpBar.style.background = "linear-gradient(90deg,#00eaff,#0088cc)";
+  else if (hpPct > 30) hpBar.style.background = "linear-gradient(90deg,#ffcc00,#ff8800)";
+  else hpBar.style.background = "linear-gradient(90deg,#ff4444,#cc0000)";
+  document.getElementById("car-hp-text").textContent = `HP: ${Math.round(GS.carHp)} / ${GS.carHpMax}`;
+
+  // Shield
+  const shPct = (GS.carShield / GS.carShieldMax) * 100;
+  document.getElementById("car-shield-bar").style.width = shPct + "%";
+  document.getElementById("car-shield-text").textContent = `SHIELD: ${Math.round(GS.carShield)}`;
+
+  // Dragon HP
+  const dHpPct = (GS.dragonHp / GS.dragonHpMax) * 100;
+  document.getElementById("dragon-hp-bar").style.width = dHpPct + "%";
+  const dBar = document.getElementById("dragon-hp-bar");
+  if (dHpPct > 60) dBar.style.background = "linear-gradient(90deg,#ff6600,#ff2200)";
+  else if (dHpPct > 30) dBar.style.background = "linear-gradient(90deg,#ff8800,#ffcc00)";
+  else dBar.style.background = "linear-gradient(90deg,#ffffff,#ff4400)";
+  document.getElementById("dragon-hp-text").textContent = `HP: ${Math.round(GS.dragonHp)} / ${GS.dragonHpMax}`;
+
+  // Score
+  document.getElementById("score-val").textContent = GS.score;
+}
+
+function showWeaponUI(key) {
+  const wp = WEAPONS[key];
+  const aw = document.getElementById("active-weapon");
+  aw.textContent = wp.name + " — " + wAmmo[key] + " LEFT";
+  aw.style.color = wp.color;
+  aw.style.borderColor = wp.color + "66";
+  aw.style.textShadow = "0 0 12px " + wp.color;
+  aw.style.opacity = "1";
+  clearTimeout(aw._to);
+  aw._to = setTimeout(()=>{ aw.style.opacity = "0"; }, 2000);
+
+  // Ammo pips
+  const ammoDiv = document.getElementById("ammo-display");
+  ammoDiv.innerHTML = "";
+  const total = WEAPONS[key].ammo;
+  for (let i = 0; i < total; i++) {
+    const pip = document.createElement("div");
+    pip.className = "ammo-pip" + (i >= wAmmo[key] ? " spent" : "");
+    pip.style.background = i < wAmmo[key] ? wp.color : "";
+    pip.style.boxShadow = i < wAmmo[key] ? "0 0 6px " + wp.color : "none";
+    ammoDiv.appendChild(pip);
+  }
+}
+
+function showEvent(msg, color="#fff") {
+  const log = document.getElementById("event-log");
+  const el = document.createElement("div");
+  el.className = "event-msg";
+  el.style.color = color;
+  el.style.textShadow = "0 0 15px " + color;
+  el.textContent = msg;
+  log.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 2500);
+}
+
+function showOverlay(title, sub, isGameOver) {
+  GS.gameOver = true;
+  const ov = document.getElementById("overlay-screen");
+  const ot = document.getElementById("overlay-title");
+  const os = document.getElementById("overlay-sub");
+  ot.textContent = title;
+  ot.style.color = isGameOver ? "#ff4444" : "#ffcc00";
+  ot.style.textShadow = isGameOver ? "0 0 30px #ff4444" : "0 0 30px #ffcc00";
+  os.textContent = sub;
+  ov.style.display = "flex";
+}
+
+// ════════════════════════════════════
+//  TOGGLE DRIVE
+// ════════════════════════════════════
+function toggleDrive() {
+  GS.driving = !GS.driving;
+  const tog = document.getElementById("toggle");
+  const lbl = document.getElementById("toggle-label");
+  const ico = document.getElementById("toggle-icon");
+  if (GS.driving) {
+    tog.classList.add("driving");
+    lbl.textContent = "STOP";
+    ico.textContent = "🛑";
+    showEvent("🚗 DRIVE MODE ON — WASD to move", "#00eaff");
+  } else {
+    tog.classList.remove("driving");
+    lbl.textContent = "DRIVE";
+    ico.textContent = "🚗";
+    showEvent("🔒 DRIVE MODE OFF", "#888");
+  }
+}
+
+// ════════════════════════════════════
+//  MINIMAP
+// ════════════════════════════════════
+function updateMinimap() {
+  const mm = document.getElementById("mm-canvas");
+  const ctx = mm.getContext("2d");
+  ctx.clearRect(0,0,90,90);
+  const scale = 90/200;
+  const cx = 45, cy = 45;
+
+  // Grid
+  ctx.strokeStyle = "rgba(0,234,255,0.08)";
+  for(let i=0;i<90;i+=15){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,90); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(90,i); ctx.stroke(); }
+
+  if (carRoot) {
+    const cx2 = cx + carRoot.position.x * scale;
+    const cy2 = cy + carRoot.position.z * scale;
+    ctx.fillStyle = "#ffcc00";
+    ctx.shadowColor = "#ffcc00"; ctx.shadowBlur = 5;
+    ctx.beginPath(); ctx.arc(cx2, cy2, 3, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  if (dragonMesh && GS.dragonAlive) {
+    const dx = cx + dragonMesh.position.x * scale;
+    const dy = cy + dragonMesh.position.z * scale;
+    ctx.fillStyle = "#ff4400";
+    ctx.shadowColor = "#ff4400"; ctx.shadowBlur = 5;
+    ctx.beginPath(); ctx.arc(dx, dy, 4, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// ════════════════════════════════════
+//  RESTART
+// ════════════════════════════════════
+function restartGame() {
+  GS.carHp = GS.carHpMax; GS.carShield = GS.carShieldMax;
+  GS.dragonHp = GS.dragonHpMax; GS.dragonAlive = true; GS.gameOver = false;
+  GS.score = 0; GS.driving = false; GS.dragonPhase = 1; GS.dragonAttackInterval = 3.5;
+  GS.dragonAttackTimer = 0;
+  Object.keys(WEAPONS).forEach(k => { wCooldowns[k]=0; wAmmo[k]=WEAPONS[k].ammo; });
+  if (carRoot) carRoot.position = new BABYLON.Vector3(0,0,-50);
+  document.getElementById("overlay-screen").style.display = "none";
+  document.getElementById("toggle").classList.remove("driving");
+  document.getElementById("toggle-label").textContent = "DRIVE";
+  document.getElementById("toggle-icon").textContent = "🚗";
+  projectiles.forEach(p => p.mesh.dispose()); projectiles = [];
+  updateHUD();
+}
+
+// Weapon button clicks
+Object.keys(WEAPONS).forEach(key => {
+  const btn = document.getElementById("btn-"+key);
+  if (btn) btn.addEventListener("click", ()=>{ fireWeapon(key); showWeaponUI(key); });
 });
 
-window.addEventListener("resize", () => engine.resize());
+// ════════════════════════════════════
+//  INIT
+// ════════════════════════════════════
+createScene().then(() => {
+  updateHUD();
+  engine.runRenderLoop(() => {
+    gameLoop();
+    if (scene) scene.render();
+  });
+});
+
+window.addEventListener("resize", ()=> engine.resize());
 </script>
 </body>
 </html>
