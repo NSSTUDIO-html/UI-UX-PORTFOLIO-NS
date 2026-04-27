@@ -4,278 +4,739 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WarDrive3D – Car Base + HUD</title>
-
-  <!-- ✅ Babylon.js Core -->
   <script src="https://cdn.babylonjs.com/babylon.js"></script>
-  <!-- ✅ Babylon.js Loaders (needed for .glb/.gltf) -->
   <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-  <!-- ✅ Babylon.js GUI (optional HUD/UI) -->
   <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
 
   <style>
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background-color: black;
-    }
-    #renderCanvas {
-      width: 100%;
-      height: 100%;
-      touch-action: none;
-    }
+    html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
+    #renderCanvas { width:100%; height:100%; touch-action:none; }
     #status {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-family: sans-serif;
-      font-size: 14px;
-      z-index: 10;
+      position:absolute; top:10px; left:10px;
+      background:rgba(0,0,0,0.6); color:#fff;
+      padding:8px 12px; border-radius:8px;
+      font-family:sans-serif; font-size:14px; z-index:10;
     }
-  /* 🔥 Common button style */
-button {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  border: none;
-  border-radius: 30%;
-  background-color: rgba(20, 20, 20, 0.7);
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  z-index: 5;
-}
 
-/* Hover effects */
-button:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
-  background-color: rgba(30, 30, 30, 0.9);
-}
+    button {
+      position:absolute; width:50px; height:50px;
+      border:none; border-radius:30%;
+      background-color:rgba(20,20,20,0.7);
+      background-size:cover; background-position:center;
+      box-shadow:0 0 10px rgba(255,255,255,0.2);
+      transition:all 0.3s ease; cursor:pointer; z-index:5;
+    }
+    button:hover { transform:scale(1.15); box-shadow:0 0 20px rgba(0,255,255,0.7); background-color:rgba(30,30,30,0.9); }
+    button.active { box-shadow:0 0 25px rgba(0,255,100,0.9); border:2px solid #0f0; }
+    button.firing { animation:pulseBtn 0.15s ease-out; }
+    button.cooldown { opacity:0.4; cursor:not-allowed; }
+    @keyframes pulseBtn { 0%{transform:scale(1)} 50%{transform:scale(0.88)} 100%{transform:scale(1)} }
 
-/* Weapon buttons */
-#v { bottom: 0; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/a/ae/PEO_M249_Para_ACOG.jpg'); }
-#w { bottom: 70px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMmvVW7ftU7mlDPgN59P9mEVxi0tvK6wSzz_v705SK4b1Y8cfurn4kjjI&s=10'); }
-#p { bottom: 140px; right: 0; background-image: url('https://upload.wikimedia.org/wikipedia/commons/7/78/A-4_Skyhawk_rocket_pod.JPG'); }
-#s { bottom: 210px; right: 0; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyxGwjULw3T6N-g_Ob4jFJ5oYvLOMqVDehoUSYDjaN8sKcZotBQujjSYG3&s=10'); }
+    #v   { bottom:0;   right:0;   background-image:url('https://upload.wikimedia.org/wikipedia/commons/a/ae/PEO_M249_Para_ACOG.jpg'); }
+    #w   { bottom:70px; right:0;  background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRMmvVW7ftU7mlDPgN59P9mEVxi0tvK6wSzz_v705SK4b1Y8cfurn4kjjI&s=10'); }
+    #p   { bottom:140px; right:0; background-image:url('https://upload.wikimedia.org/wikipedia/commons/7/78/A-4_Skyhawk_rocket_pod.JPG'); }
+    #s   { bottom:210px; right:0; background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyxGwjULw3T6N-g_Ob4jFJ5oYvLOMqVDehoUSYDjaN8sKcZotBQujjSYG3&s=10'); }
+    #t   { bottom:0;   right:70px; background-image:url('https://media.sketchfab.com/models/5432b5c920444c2f96feb4c7e014fa74/thumbnails/f88199126dc544079a7f0347016e27f1/2b44de7de3684d7f8e2a4b63ba3cbb57.jpeg'); }
+    #bo  { bottom:70px; right:70px; background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQbp56wkjSBP8Fy8ZSSUGnE7_S2Htl0YgGQM4dLZebfNADD_3Qt7az_ixO&s=10'); }
+    #wa  { bottom:140px; right:70px; background-image:url('https://www-cdn.djiits.com/cms/uploads/ef97699c719414c2138ae8cca2806760.png'); }
+    #as  { bottom:0; right:135px; background-image:url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0pHWc1JWwbmqBxN5qV7KUbujaqOwGGuJK1Y3NrtO91A&s=10'); }
+    #tri { bottom:0; right:200px; background-image:url('https://p.turbosquid.com/ts-thumb/os/knJfkO/GhOSWi8Z/main_0/png/1473691287/1920x1080/fit_q87/8f64475d53491ed3294c5585d4177871b677987b/main_0.jpg'); }
 
-#t { bottom: 0; right: 70px; background-image: url('https://media.sketchfab.com/models/5432b5c920444c2f96feb4c7e014fa74/thumbnails/f88199126dc544079a7f0347016e27f1/2b44de7de3684d7f8e2a4b63ba3cbb57.jpeg'); }
-#bo { bottom: 70px; right: 70px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTQbp56wkjSBP8Fy8ZSSUGnE7_S2Htl0YgGQM4dLZebfNADD_3Qt7az_ixO&s=10'); }
-#wa { bottom: 140px; right: 70px; background-image: url('https://www-cdn.djiits.com/cms/uploads/ef97699c719414c2138ae8cca2806760.png'); }
-#as { bottom: 0; right: 135px; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0pHWc1JWwbmqBxN5qV7KUbujaqOwGGuJK1Y3NrtO91A&s=10'); }
-#tri { bottom: 0; right: 200px; background-image: url('https://p.turbosquid.com/ts-thumb/os/knJfkO/GhOSWi8Z/main_0/png/1473691287/1920x1080/fit_q87/8f64475d53491ed3294c5585d4177871b677987b/main_0.jpg'); }
+    /* toggle */
+    #toggle {
+      position:absolute; bottom:15px; left:15px;
+      border-radius:50%; background:radial-gradient(circle at center,#0a0a0a 50%,#000 100%);
+      padding:25px; border:2px solid #00eaff;
+      box-shadow:0 0 25px rgba(0,255,255,0.7),inset 0 0 10px rgba(0,255,255,0.3);
+      cursor:pointer; transition:all 0.3s ease; z-index:5;
+    }
+    #toggle:hover { box-shadow:0 0 35px rgba(0,255,255,0.9),0 0 60px rgba(0,255,255,0.4),inset 0 0 15px rgba(0,255,255,0.6); transform:scale(1.05); }
+    #sw {
+      width:32px; height:32px; border-radius:50%;
+      background:radial-gradient(circle,#111 30%,#333 100%);
+      box-shadow:inset 3px 3px 8px #000,inset -3px -3px 8px #444,0 0 5px #00eaff;
+      transition:all 0.4s ease;
+    }
+    #toggle:hover #sw { background:radial-gradient(circle,#00ffff 40%,#007777 100%); box-shadow:0 0 25px #00ffff,inset 0 0 10px #00cccc; transform:scale(1.25) rotate(45deg); }
 
-/* 🌌 Futuristic Toggle Control */
-#toggle {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #0a0a0a 50%, #000 100%);
-  padding: 25px;
-  border: 2px solid #00eaff;
-  box-shadow:
-    0 0 25px rgba(0, 255, 255, 0.7),
-    inset 0 0 10px rgba(0, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 5;
-}
+    /* HUD */
+    #hud {
+      position:absolute; top:20px; right:20px; width:120px;
+      background:rgba(0,0,0,0.75); padding:12px; border-radius:10px;
+      color:#fff; font-family:'Courier New',monospace; font-size:11px; z-index:20;
+      box-shadow:0 0 15px rgba(0,255,255,0.3); border:1px solid rgba(0,255,255,0.2);
+    }
+    #hud label { display:block; margin-bottom:3px; letter-spacing:1px; text-transform:uppercase; }
+    meter { width:100%; height:14px; margin-bottom:10px; display:block; border-radius:4px; }
+    meter::-webkit-meter-bar { background:#111; border-radius:10px; }
+    #healthMeter::-webkit-meter-optimum-value { background:linear-gradient(to right,#00ff88,#00cc66); border-radius:10px; }
+    #damageMeter::-webkit-meter-optimum-value { background:linear-gradient(to right,#ff4444,#cc0000); border-radius:10px; }
+    #ammoMeter::-webkit-meter-optimum-value { background:linear-gradient(to right,#ffcc00,#ff8800); border-radius:10px; }
 
-#toggle:hover {
-  box-shadow:
-    0 0 35px rgba(0, 255, 255, 0.9),
-    0 0 60px rgba(0, 255, 255, 0.4),
-    inset 0 0 15px rgba(0, 255, 255, 0.6);
-  transform: scale(1.05);
-}
+    /* Weapon name toast */
+    #weaponToast {
+      position:absolute; bottom:90px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,0.8); color:#00ffcc; font-family:'Courier New',monospace;
+      font-size:13px; letter-spacing:2px; text-transform:uppercase;
+      padding:6px 18px; border-radius:20px; border:1px solid #00ffcc;
+      box-shadow:0 0 15px rgba(0,255,200,0.4);
+      opacity:0; transition:opacity 0.3s ease; pointer-events:none; z-index:30;
+    }
+    #weaponToast.show { opacity:1; }
 
-#sw {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #111 30%, #333 100%);
-  box-shadow:
-    inset 3px 3px 8px #000,
-    inset -3px -3px 8px #444,
-    0 0 5px #00eaff;
-  transition: all 0.4s ease;
-}
+    /* Effect overlay flashes */
+    #flashOverlay {
+      position:absolute; inset:0; pointer-events:none; z-index:15;
+      opacity:0; transition:opacity 0.1s;
+    }
+    #flashOverlay.fire   { background:rgba(255,120,0,0.18); opacity:1; }
+    #flashOverlay.shield { background:rgba(0,200,255,0.18); opacity:1; }
+    #flashOverlay.emp    { background:rgba(180,0,255,0.22); opacity:1; }
+    #flashOverlay.hit    { background:rgba(255,0,0,0.25); opacity:1; }
 
-#toggle:hover #sw {
-  background: radial-gradient(circle, #00ffff 40%, #007777 100%);
-  box-shadow:
-    0 0 25px #00ffff,
-    inset 0 0 10px #00cccc;
-  transform: scale(1.25) rotate(45deg);
-}
+    /* Kill feed */
+    #killFeed {
+      position:absolute; top:100px; left:10px; width:200px;
+      font-family:'Courier New',monospace; font-size:11px; z-index:20;
+      pointer-events:none;
+    }
+    .kfLine {
+      background:rgba(0,0,0,0.65); color:#fff;
+      padding:3px 8px; border-radius:4px; margin-bottom:4px;
+      border-left:3px solid #00ffcc; animation:fadeKF 4s forwards;
+    }
+    @keyframes fadeKF { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+
+    /* Shield bar */
+    #shieldBar {
+      position:absolute; bottom:80px; left:50%; transform:translateX(-50%);
+      width:140px; height:8px; background:rgba(0,0,0,0.6);
+      border-radius:4px; border:1px solid #00eaff; z-index:20;
+      display:none;
+    }
+    #shieldFill { height:100%; width:100%; background:linear-gradient(to right,#00eaff,#0077ff); border-radius:4px; transition:width 0.3s; }
+
+    /* Cooldown overlay on button */
+    .cdOverlay {
+      position:absolute; bottom:0; right:0; left:0; top:0;
+      background:rgba(0,0,0,0.55); border-radius:30%;
+      display:flex; align-items:center; justify-content:center;
+      color:#fff; font-size:10px; font-family:monospace;
+      pointer-events:none; z-index:6;
+    }
+
+    /* Car controls guide */
+    #controlGuide {
+      position:absolute; bottom:80px; right:110px;
+      background:rgba(0,0,0,0.6); color:#aaa;
+      font-family:'Courier New',monospace; font-size:10px;
+      padding:6px 10px; border-radius:8px; z-index:5; letter-spacing:1px;
+      line-height:1.8;
+    }
   </style>
 </head>
 <body>
-  <canvas id="renderCanvas"></canvas>
-  <div id="status">🚗 Loading Car...</div>
-  <!-- vulcan--><button id="v"></button>
-  <!-- wrecker--><button id="w"></button>
-  <!-- pods--><button id="p"></button>
-  <!-- seeker--><button id="s"></button>
-  <!-- thunder--><button id="t"></button>
-  <!-- blackout--><button id="bo"></button>
-  <!-- wasp--><button id="wa"></button>
-  <!-- aegisheild--><button id="as"></button>
-  <!-- trident--><button id="tri"></button>
-  
-   <!-- car controls--><div id="toggle"><div id="sw"></div></div>
-  
-  <script>
+
+<div id="hud">
+  <label>⬤ Health</label>
+  <meter id="healthMeter" min="0" max="100" value="100"></meter>
+  <label>⬤ Damage</label>
+  <meter id="damageMeter" min="0" max="100" value="0"></meter>
+  <label>⬤ Ammo</label>
+  <meter id="ammoMeter" min="0" max="100" value="100"></meter>
+  <div id="scoreBox" style="color:#ffcc00;font-size:12px;margin-top:4px;letter-spacing:1px;">SCORE: 0</div>
+</div>
+
+<canvas id="renderCanvas"></canvas>
+<div id="status">🚗 Loading Car...</div>
+<div id="weaponToast"></div>
+<div id="flashOverlay"></div>
+<div id="killFeed"></div>
+<div id="shieldBar"><div id="shieldFill"></div></div>
+
+<!-- Weapon buttons -->
+<button id="v"   title="Vulcan Cannon"></button>
+<button id="w"   title="Wrecker Shotgun"></button>
+<button id="p"   title="Rocket Pods"></button>
+<button id="s"   title="Seeker Missiles"></button>
+<button id="t"   title="Thunder Cannon"></button>
+<button id="bo"  title="Blackout EMP"></button>
+<button id="wa"  title="Wasp Drones"></button>
+<button id="as"  title="Aegis Shield"></button>
+<button id="tri" title="Trident Strike"></button>
+
+<div id="toggle"><div id="sw"></div></div>
+<div id="controlGuide">W/S – Drive &nbsp; A/D – Turn<br>SPACE – Brake &nbsp; ↑↓←→ – Camera</div>
+
+<script>
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
 let scene, carRoot;
 
+// ─── Game State ───────────────────────────────────────────────
+const GS = {
+  health: 100,
+  damage: 0,
+  ammo: 100,
+  score: 0,
+  shieldActive: false,
+  shieldTimer: null,
+  shieldDuration: 6000,
+  empActive: false,
+  speed: 0,
+  maxSpeed: 0.4,
+  turnSpeed: 0.04,
+  moving: false,
+  keys: {},
+  tankMeshes: [],
+  bullets: [],
+  drones: [],
+  weaponCooldowns: {},
+};
+
+// ─── Weapons Config ───────────────────────────────────────────
+const WEAPONS = {
+  v:   { name:"VULCAN CANNON",    ammo:3,  cooldown:200,  damage:8,   color:"#ff8800", type:"bullet",   range:60 },
+  w:   { name:"WRECKER SHOTGUN",  ammo:5,  cooldown:800,  damage:18,  color:"#ff4400", type:"shotgun",  range:20 },
+  p:   { name:"ROCKET PODS",      ammo:8,  cooldown:1200, damage:25,  color:"#ff2200", type:"rocket",   range:80 },
+  s:   { name:"SEEKER MISSILES",  ammo:6,  cooldown:1500, damage:30,  color:"#ff0044", type:"seeker",   range:90 },
+  t:   { name:"THUNDER CANNON",   ammo:12, cooldown:2500, damage:45,  color:"#ffee00", type:"thunder",  range:70 },
+  bo:  { name:"BLACKOUT EMP",     ammo:15, cooldown:5000, damage:20,  color:"#aa00ff", type:"emp",      range:30 },
+  wa:  { name:"WASP DRONES",      ammo:4,  cooldown:3000, damage:15,  color:"#00ffcc", type:"drone",    range:50 },
+  as:  { name:"AEGIS SHIELD",     ammo:0,  cooldown:8000, damage:0,   color:"#00aaff", type:"shield",   range:0  },
+  tri: { name:"TRIDENT STRIKE",   ammo:20, cooldown:4000, damage:60,  color:"#ff00aa", type:"trident",  range:100},
+};
+
+// ─── UI Helpers ───────────────────────────────────────────────
+const healthMeter = document.getElementById("healthMeter");
+const damageMeter = document.getElementById("damageMeter");
+const ammoMeter   = document.getElementById("ammoMeter");
+const scoreBox    = document.getElementById("scoreBox");
+const flash       = document.getElementById("flashOverlay");
+const toast       = document.getElementById("weaponToast");
+const killFeed    = document.getElementById("killFeed");
+const shieldBar   = document.getElementById("shieldBar");
+const shieldFill  = document.getElementById("shieldFill");
+
+function updateHUD() {
+  healthMeter.value = GS.health;
+  damageMeter.value = GS.damage;
+  ammoMeter.value   = GS.ammo;
+  scoreBox.textContent = "SCORE: " + GS.score;
+}
+
+function showToast(name, color) {
+  toast.textContent = name;
+  toast.style.color = color;
+  toast.style.borderColor = color;
+  toast.style.boxShadow = `0 0 15px ${color}66`;
+  toast.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove("show"), 1500);
+}
+
+function doFlash(type) {
+  flash.className = type;
+  clearTimeout(flash._t);
+  flash._t = setTimeout(() => { flash.className = ""; }, 200);
+}
+
+function addKillFeed(msg, color="#00ffcc") {
+  const el = document.createElement("div");
+  el.className = "kfLine";
+  el.style.borderColor = color;
+  el.textContent = msg;
+  killFeed.prepend(el);
+  setTimeout(() => el.remove(), 4100);
+}
+
+function setCooldownBtn(id, ms) {
+  const btn = document.getElementById(id);
+  btn.classList.add("cooldown");
+  let remaining = ms / 1000;
+  const cdEl = document.createElement("div");
+  cdEl.className = "cdOverlay";
+  cdEl.textContent = remaining.toFixed(1);
+  btn.appendChild(cdEl);
+  const interval = setInterval(() => {
+    remaining -= 0.1;
+    if (remaining <= 0) {
+      clearInterval(interval);
+      btn.classList.remove("cooldown");
+      cdEl.remove();
+    } else {
+      cdEl.textContent = remaining.toFixed(1);
+    }
+  }, 100);
+}
+
+// ─── Scene Setup ──────────────────────────────────────────────
 const createScene = async () => {
   scene = new BABYLON.Scene(engine);
-  scene.clearColor = new BABYLON.Color3(0.3, 0.5, 0.8);
+  scene.clearColor = new BABYLON.Color4(0.3, 0.5, 0.8, 1);
 
-  // Camera
-  const camera = new BABYLON.ArcRotateCamera(
-    "camera",
-    Math.PI / 2,
-    Math.PI / 3,
-    10,
-    new BABYLON.Vector3(0, 1, 0),
-    scene
-  );
+  const camera = new BABYLON.ArcRotateCamera("camera", Math.PI/2, Math.PI/3, 10, new BABYLON.Vector3(0,1,0), scene);
   camera.attachControl(canvas, true);
+  camera.lowerRadiusLimit = 4;
+  camera.upperRadiusLimit = 30;
 
-  // Lights
-  const light1 = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+  const light1 = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0,1,0), scene);
   light1.intensity = 0.8;
-  const light2 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(5, 5, 5), scene);
+  const light2 = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(5,5,5), scene);
   light2.intensity = 0.8;
 
   // Ground
-  const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 200, height: 200 }, scene);
+  const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:200,height:200}, scene);
+  const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
+  const tex = new BABYLON.Texture("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFtx4xsMMNhiF79SM15nxLsdhwY7bEdtKU_CN7dQNn8N38GQkXPa3HD1VE&s=10", scene);
+  groundMat.diffuseTexture = tex;
+  ground.material = groundMat;
 
-const groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-
-// Add image texture
-const texture = new BABYLON.Texture("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFtx4xsMMNhiF79SM15nxLsdhwY7bEdtKU_CN7dQNn8N38GQkXPa3HD1VE&s=10", scene);
-groundMat.diffuseTexture = texture;
-
-// Optional: repeat texture (tiling)
-texture.uScale = 1;
-texture.vScale = 1;
-
-ground.material = groundMat;
-  
-  BABYLON.SceneLoader.ImportMesh(
-  "",
-  "",
-  "t-64b.glb",
-  scene,
-  function (meshes) {
+  // ── Tank enemies ──
+  BABYLON.SceneLoader.ImportMesh("", "", "t-64b.glb", scene, function(meshes) {
     const tank = meshes[0];
-    tank.scaling = new BABYLON.Vector3(1.3, 1.3, 1.3);
-    tank.position = new BABYLON.Vector3(0, 0, -15);
-  tank.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
-    // 🔹 Make 20 clones along X axis
-    for (let i = 1; i < 10; i++) {
-      const clone = tank.clone("tree" + i);
-      clone.position = new BABYLON.Vector3(10,0,i * 12-15); 
-    }
-      // i*3 = spacing of 3 units between trees
-      for (let i = 1; i < 10; i++) {
-      const clone1 = tank.clone("tree1" + i);
-      clone1.position = new BABYLON.Vector3(-10,0,i * 12-15); 
-      // i*3 = spacing of 3 units between trees
-      
-      
-    }
-        
-        for (let i = 1; i < 10; i++) {
-      const clone = tank.clone("tree2" + i);
-      clone.position = new BABYLON.Vector3(3,0,i * 12-15); 
-    }
-      // i*3 = spacing of 3 units between trees
-      for (let i = 1; i < 10; i++) {
-      const clone1 = tank.clone("tree12" + i);
-      clone1.position = new BABYLON.Vector3(-3,0,i * 12-15); 
-      // i*3 = spacing of 3 units between trees
-      
-      
-    }
-  }
-);
-  BABYLON.SceneLoader.ImportMesh(
-  "",
-  "",
-  "boeing_ah-64d_apache_combat_helicopter.glb",
-  scene,
-  function (meshes) {
-    const mesh = meshes[0];
-    mesh.scaling = new BABYLON.Vector3(5,5,5);
-      mesh.position = new BABYLON.Vector3(0,10,10);
-      mesh.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
-    }
-);
-  
-  
-  
-  // Create one root node for all
+    tank.scaling = new BABYLON.Vector3(1.3,1.3,1.3);
+    tank.position = new BABYLON.Vector3(0,0,-15);
+    tank.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
+    GS.tankMeshes.push(tank);
+    const positions = [];
+    for(let i=1;i<10;i++) positions.push([10, i*12-15], [-10, i*12-15], [3, i*12-15], [-3, i*12-15]);
+    positions.forEach(([x,z],i) => {
+      const c = tank.clone("tank_"+i);
+      c.position = new BABYLON.Vector3(x, 0, z);
+      GS.tankMeshes.push(c);
+    });
+  });
+
+  // ── Apache helicopter ──
+  BABYLON.SceneLoader.ImportMesh("", "", "boeing_ah-64d_apache_combat_helicopter.glb", scene, function(meshes) {
+    const heli = meshes[0];
+    heli.scaling = new BABYLON.Vector3(5,5,5);
+    heli.position = new BABYLON.Vector3(0,10,10);
+    heli.rotation = new BABYLON.Vector3(0,Math.PI/2,0);
+    // Hover animation
+    scene.registerBeforeRender(() => {
+      heli.position.y = 10 + Math.sin(performance.now()*0.001)*0.5;
+    });
+  });
+
+  // ── Car root ──
   carRoot = new BABYLON.TransformNode("carRoot", scene);
-
   const basePath = "./";
-
-  // Helper to load and attach model
   const loadAndAttach = (file, scale, pos, rot) => {
     BABYLON.SceneLoader.ImportMesh("", basePath, file, scene, (meshes) => {
       const m = meshes[0];
-      m.scaling = scale;
-      m.position = pos;
-      m.rotation = rot;
-      m.parent = carRoot; // attach to root
+      m.scaling = scale; m.position = pos; m.rotation = rot;
+      m.parent = carRoot;
     });
   };
 
-  // Main Car
   BABYLON.SceneLoader.ImportMesh("", basePath, "bumblebee_tf1_2007_vehicle_mode.glb", scene, (meshes) => {
     const car = meshes[0];
-    car.position = new BABYLON.Vector3(0, 0, 0);
-    car.scaling = new BABYLON.Vector3(1, 1, 1);
+    car.position = BABYLON.Vector3.Zero();
+    car.scaling = new BABYLON.Vector3(1,1,1);
     car.parent = carRoot;
-    document.getElementById("status").innerText = "✅ Car Loaded Successfully!";
+    document.getElementById("status").innerText = "✅ Ready – Select a weapon!";
+    setTimeout(() => document.getElementById("status").style.opacity = 0.5, 3000);
   });
 
-  // Weapons + Add-ons
-  loadAndAttach("pkp.glb", new BABYLON.Vector3(0.2, 0.2, 0.2), new BABYLON.Vector3(0.6, 1.8, -0.6), new BABYLON.Vector3(0,0,0));
-  loadAndAttach("stylized_retro-futuristic_shotgun-1.glb", new BABYLON.Vector3(0.5, 0.5, 0.5), new BABYLON.Vector3(-0.7, 0.6, 2), new BABYLON.Vector3(0, Math.PI/2, 0));
-  loadAndAttach("rl202.glb", new BABYLON.Vector3(3, 3, 3), new BABYLON.Vector3(0, 1, -3), new BABYLON.Vector3(0,0,0));
-  loadAndAttach("missile_launcher.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(-0.5, 0.7, 0), new BABYLON.Vector3(0, Math.PI/2, 0));
-  loadAndAttach("upgraded_laser_energy_cannon.glb", new BABYLON.Vector3(0.3, 0.3, 0.3), new BABYLON.Vector3(-0.7, 0, -3), new BABYLON.Vector3(0, Math.PI, 0));
-  loadAndAttach("sci-fi_emp_grenade.glb", new BABYLON.Vector3(0.7, 0.7, 0.7), new BABYLON.Vector3(1.4, 0.6, 1), new BABYLON.Vector3(Math.PI/2, Math.PI, 0));
-  loadAndAttach("mirrors_edge_catalyst_vtol.glb", new BABYLON.Vector3(0.05, 0.05, 0.05), new BABYLON.Vector3(1, 1, -2), new BABYLON.Vector3(Math.PI/2, Math.PI/2, 0));
-  loadAndAttach("egyptian_shield.glb", new BABYLON.Vector3(1, 1, 1), new BABYLON.Vector3(-1, 1, 0), new BABYLON.Vector3(Math.PI/8, 0, Math.PI/7));
-  loadAndAttach("trident.glb", new BABYLON.Vector3(0.005, 0.005, 0.005), new BABYLON.Vector3(-0.7, 1, 0), new BABYLON.Vector3(Math.PI, 0, Math.PI));
+  loadAndAttach("pkp.glb",              new BABYLON.Vector3(0.2,0.2,0.2),   new BABYLON.Vector3(0.6,1.8,-0.6),  new BABYLON.Vector3(0,0,0));
+  loadAndAttach("stylized_retro-futuristic_shotgun-1.glb", new BABYLON.Vector3(0.5,0.5,0.5), new BABYLON.Vector3(-0.7,0.6,2), new BABYLON.Vector3(0,Math.PI/2,0));
+  loadAndAttach("rl202.glb",            new BABYLON.Vector3(3,3,3),          new BABYLON.Vector3(0,1,-3),        new BABYLON.Vector3(0,0,0));
+  loadAndAttach("missile_launcher.glb", new BABYLON.Vector3(0.05,0.05,0.05),new BABYLON.Vector3(-0.5,0.7,0),   new BABYLON.Vector3(0,Math.PI/2,0));
+  loadAndAttach("upgraded_laser_energy_cannon.glb", new BABYLON.Vector3(0.3,0.3,0.3), new BABYLON.Vector3(-0.7,0,-3), new BABYLON.Vector3(0,Math.PI,0));
+  loadAndAttach("sci-fi_emp_grenade.glb", new BABYLON.Vector3(0.7,0.7,0.7), new BABYLON.Vector3(1.4,0.6,1),    new BABYLON.Vector3(Math.PI/2,Math.PI,0));
+  loadAndAttach("mirrors_edge_catalyst_vtol.glb", new BABYLON.Vector3(0.05,0.05,0.05), new BABYLON.Vector3(1,1,-2), new BABYLON.Vector3(Math.PI/2,Math.PI/2,0));
+  loadAndAttach("egyptian_shield.glb",  new BABYLON.Vector3(1,1,1),          new BABYLON.Vector3(-1,1,0),        new BABYLON.Vector3(Math.PI/8,0,Math.PI/7));
+  loadAndAttach("trident.glb",          new BABYLON.Vector3(0.005,0.005,0.005), new BABYLON.Vector3(-0.7,1,0),  new BABYLON.Vector3(Math.PI,0,Math.PI));
 
-  // Move or rotate whole car group
   carRoot.position = new BABYLON.Vector3(0, 0, -50);
   carRoot.rotation = new BABYLON.Vector3(0, 0, 0);
-  carRoot.scaling = new BABYLON.Vector3(1, 1, 1);
+
+  // Camera follow target
+  camera.target = carRoot.position.clone();
+
+  // ── Car movement loop ──
+  scene.registerBeforeRender(() => {
+    if (!carRoot) return;
+    const keys = GS.keys;
+
+    if (keys["w"] || keys["arrowup"]) {
+      GS.speed = Math.min(GS.speed + 0.01, GS.maxSpeed);
+    } else if (keys["s"] || keys["arrowdown"]) {
+      GS.speed = Math.max(GS.speed - 0.01, -GS.maxSpeed*0.5);
+    } else {
+      GS.speed *= 0.92;
+    }
+    if (Math.abs(GS.speed) > 0.001) {
+      carRoot.position.z += Math.cos(carRoot.rotation.y) * GS.speed;
+      carRoot.position.x += Math.sin(carRoot.rotation.y) * GS.speed;
+    }
+    if (keys["a"] || keys["arrowleft"])  carRoot.rotation.y -= GS.turnSpeed;
+    if (keys["d"] || keys["arrowright"]) carRoot.rotation.y += GS.turnSpeed;
+
+    // Camera follow
+    camera.target = BABYLON.Vector3.Lerp(camera.target, carRoot.position.add(new BABYLON.Vector3(0,1,0)), 0.08);
+
+    // Bullet movement
+    GS.bullets = GS.bullets.filter(b => {
+      b.mesh.position.addInPlace(b.dir.scale(b.speed));
+      b.life--;
+      if (b.life <= 0) { b.mesh.dispose(); return false; }
+      // Hit detection vs tanks
+      for (let i = GS.tankMeshes.length-1; i >= 0; i--) {
+        const t = GS.tankMeshes[i];
+        if (!t._disposed && BABYLON.Vector3.Distance(b.mesh.position, t.position) < 3.5) {
+          hitTank(t, b.dmg, b.color);
+          b.mesh.dispose();
+          GS.tankMeshes.splice(i,1);
+          return false;
+        }
+      }
+      return true;
+    });
+
+    // Drone orbit
+    GS.drones.forEach((d, i) => {
+      const angle = performance.now()*0.002 + i * (Math.PI*2/GS.drones.length);
+      d.mesh.position.x = carRoot.position.x + Math.cos(angle)*3;
+      d.mesh.position.z = carRoot.position.z + Math.sin(angle)*3;
+      d.mesh.position.y = carRoot.position.y + 1.5;
+      d.life--;
+      if (d.life <= 0) { d.mesh.dispose(); GS.drones.splice(i,1); }
+    });
+
+    // Shield visual pulse
+    if (GS.shieldMesh) {
+      GS.shieldMesh.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+      GS.shieldMesh.scaling = new BABYLON.Vector3(
+        2.5 + Math.sin(performance.now()*0.005)*0.1,
+        2.5 + Math.sin(performance.now()*0.005)*0.1,
+        2.5 + Math.sin(performance.now()*0.005)*0.1
+      );
+    }
+  });
 
   return scene;
 };
 
-createScene().then((scene) => {
-  engine.runRenderLoop(() => scene.render());
+// ─── Hit Tank Effect ──────────────────────────────────────────
+function hitTank(tankMesh, dmg, color) {
+  GS.score += dmg * 10;
+  updateHUD();
+  addKillFeed("🔥 Tank Hit! +" + (dmg*10) + "pts", color);
+  // Explosion sphere
+  const exp = BABYLON.MeshBuilder.CreateSphere("exp", {diameter:2}, scene);
+  exp.position = tankMesh.position.clone();
+  const mat = new BABYLON.StandardMaterial("expMat", scene);
+  mat.emissiveColor = BABYLON.Color3.FromHexString(color || "#ff4400");
+  mat.wireframe = true;
+  exp.material = mat;
+  let scale = 0.1;
+  const grow = scene.onBeforeRenderObservable.add(() => {
+    scale += 0.2;
+    exp.scaling = new BABYLON.Vector3(scale, scale, scale);
+    mat.alpha = Math.max(0, 1 - scale/5);
+    if (scale > 5) { exp.dispose(); scene.onBeforeRenderObservable.remove(grow); }
+  });
+  tankMesh._disposed = true;
+  tankMesh.dispose();
+}
+
+// ─── Spawn Bullet ─────────────────────────────────────────────
+function spawnBullet(count, spread, speed, dmg, color, life) {
+  if (!carRoot) return;
+  for (let i = 0; i < count; i++) {
+    const bm = BABYLON.MeshBuilder.CreateSphere("bul", {diameter:0.25}, scene);
+    const mat = new BABYLON.StandardMaterial("bm", scene);
+    mat.emissiveColor = BABYLON.Color3.FromHexString(color);
+    bm.material = mat;
+    bm.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+    const angle = carRoot.rotation.y + (Math.random()-0.5)*spread;
+    const dir = new BABYLON.Vector3(Math.sin(angle), 0, Math.cos(angle));
+    GS.bullets.push({mesh:bm, dir, speed, dmg, color, life: life||60});
+  }
+}
+
+// ─── Weapon Fire Functions ────────────────────────────────────
+function fireVulcan() {
+  // Rapid-fire 3 bullets
+  spawnBullet(1, 0.08, 1.2, 8, "#ff8800", 55);
+  doFlash("fire");
+  GS.ammo = Math.max(0, GS.ammo - 3);
+}
+
+function fireWrecker() {
+  // Shotgun burst – 6 pellets
+  spawnBullet(6, 0.7, 0.9, 18, "#ff4400", 30);
+  doFlash("fire");
+  GS.ammo = Math.max(0, GS.ammo - 5);
+}
+
+function fireRocketPods() {
+  // 3 rockets wide spread
+  spawnBullet(3, 0.4, 1.4, 25, "#ff2200", 80);
+  doFlash("fire");
+  GS.ammo = Math.max(0, GS.ammo - 8);
+  // Screen shake
+  shakeCamera();
+}
+
+function fireSeekers() {
+  // Homing-ish: one per nearby tank
+  const targets = GS.tankMeshes.filter(t => !t._disposed).slice(0,3);
+  if (targets.length === 0) {
+    spawnBullet(2, 0.2, 1.5, 30, "#ff0044", 90);
+  } else {
+    targets.forEach(target => {
+      const bm = BABYLON.MeshBuilder.CreateSphere("seek", {diameter:0.3}, scene);
+      const mat = new BABYLON.StandardMaterial("seekMat", scene);
+      mat.emissiveColor = BABYLON.Color3.FromHexString("#ff0044");
+      bm.material = mat;
+      bm.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+      let life = 120;
+      const track = scene.onBeforeRenderObservable.add(() => {
+        if (target._disposed || life <= 0) { bm.dispose(); scene.onBeforeRenderObservable.remove(track); return; }
+        const dir = target.position.subtract(bm.position).normalize();
+        bm.position.addInPlace(dir.scale(1.2));
+        life--;
+        if (BABYLON.Vector3.Distance(bm.position, target.position) < 3.5) {
+          hitTank(target, 30, "#ff0044");
+          bm.dispose();
+          scene.onBeforeRenderObservable.remove(track);
+        }
+      });
+    });
+  }
+  doFlash("fire");
+  GS.ammo = Math.max(0, GS.ammo - 6);
+}
+
+function fireThunder() {
+  // Wide energy blast – big sphere projectile
+  const bm = BABYLON.MeshBuilder.CreateSphere("thunder", {diameter:0.8}, scene);
+  const mat = new BABYLON.StandardMaterial("thunMat", scene);
+  mat.emissiveColor = BABYLON.Color3.FromHexString("#ffee00");
+  mat.wireframe = false;
+  bm.material = mat;
+  bm.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+  const angle = carRoot.rotation.y;
+  const dir = new BABYLON.Vector3(Math.sin(angle), 0, Math.cos(angle));
+  GS.bullets.push({mesh:bm, dir, speed:1.8, dmg:45, color:"#ffee00", life:90});
+  doFlash("fire");
+  shakeCamera();
+  GS.ammo = Math.max(0, GS.ammo - 12);
+}
+
+function fireBlackoutEMP() {
+  // EMP – damages all tanks within range, no bullet
+  doFlash("emp");
+  const empRange = 30;
+  let hits = 0;
+  for (let i = GS.tankMeshes.length-1; i >= 0; i--) {
+    const t = GS.tankMeshes[i];
+    if (!t._disposed && BABYLON.Vector3.Distance(carRoot.position, t.position) < empRange) {
+      hitTank(t, 20, "#aa00ff");
+      GS.tankMeshes.splice(i,1);
+      hits++;
+    }
+  }
+  // Visual EMP ring
+  const ring = BABYLON.MeshBuilder.CreateTorus("empRing", {diameter:2, thickness:0.3, tessellation:32}, scene);
+  ring.position = carRoot.position.clone();
+  const rMat = new BABYLON.StandardMaterial("rMat", scene);
+  rMat.emissiveColor = BABYLON.Color3.FromHexString("#aa00ff");
+  rMat.wireframe = true;
+  ring.material = rMat;
+  let s=0.1;
+  const growRing = scene.onBeforeRenderObservable.add(() => {
+    s+=1; ring.scaling = new BABYLON.Vector3(s,s,s);
+    rMat.alpha = Math.max(0, 1-(s/30));
+    if(s>=30){ ring.dispose(); scene.onBeforeRenderObservable.remove(growRing); }
+  });
+  addKillFeed(`⚡ EMP – ${hits} targets hit!`, "#aa00ff");
+  GS.ammo = Math.max(0, GS.ammo - 15);
+}
+
+function fireWaspDrones() {
+  // Spawn 3 drone spheres that orbit and auto-attack
+  for (let i = 0; i < 3; i++) {
+    const dm = BABYLON.MeshBuilder.CreateBox("drone"+i, {size:0.4}, scene);
+    const mat = new BABYLON.StandardMaterial("droneMat", scene);
+    mat.emissiveColor = BABYLON.Color3.FromHexString("#00ffcc");
+    dm.material = mat;
+    dm.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1.5,0));
+    GS.drones.push({mesh:dm, life:600});
+  }
+  addKillFeed("🚁 Wasp Drones Deployed!", "#00ffcc");
+  GS.ammo = Math.max(0, GS.ammo - 4);
+  doFlash("shield");
+}
+
+function activateAegisShield() {
+  if (GS.shieldActive) return;
+  GS.shieldActive = true;
+  doFlash("shield");
+  shieldBar.style.display = "block";
+  // Bubble sphere
+  const shield = BABYLON.MeshBuilder.CreateSphere("shield", {diameter:5, segments:12}, scene);
+  shield.position = carRoot.position.clone().add(new BABYLON.Vector3(0,1,0));
+  const sMat = new BABYLON.StandardMaterial("shieldMat", scene);
+  sMat.emissiveColor = BABYLON.Color3.FromHexString("#00aaff");
+  sMat.alpha = 0.25;
+  sMat.wireframe = false;
+  shield.material = sMat;
+  GS.shieldMesh = shield;
+  addKillFeed("🛡️ Aegis Shield ACTIVE!", "#00aaff");
+
+  let remaining = 1;
+  const tick = setInterval(() => {
+    remaining -= 0.016;
+    shieldFill.style.width = (remaining*100) + "%";
+    if (remaining <= 0) {
+      clearInterval(tick);
+      GS.shieldActive = false;
+      shield.dispose();
+      GS.shieldMesh = null;
+      shieldBar.style.display = "none";
+      addKillFeed("🛡️ Aegis Shield Expired", "#0055aa");
+    }
+  }, GS.shieldDuration / 60);
+}
+
+function fireTrident() {
+  // 3 massive forward beams
+  for (let k = -1; k <= 1; k++) {
+    const bm = BABYLON.MeshBuilder.CreateCylinder("tri"+k, {height:4, diameter:0.4, tessellation:8}, scene);
+    const mat = new BABYLON.StandardMaterial("triMat", scene);
+    mat.emissiveColor = BABYLON.Color3.FromHexString("#ff00aa");
+    bm.material = mat;
+    bm.position = carRoot.position.clone().add(new BABYLON.Vector3(k*1.2, 1, 0));
+    bm.rotation.x = Math.PI/2;
+    const angle = carRoot.rotation.y + k*0.15;
+    const dir = new BABYLON.Vector3(Math.sin(angle), 0, Math.cos(angle));
+    GS.bullets.push({mesh:bm, dir, speed:2.2, dmg:60, color:"#ff00aa", life:70});
+  }
+  doFlash("fire");
+  shakeCamera();
+  GS.ammo = Math.max(0, GS.ammo - 20);
+}
+
+// ─── Camera Shake ─────────────────────────────────────────────
+function shakeCamera() {
+  const cam = scene.activeCamera;
+  let count = 0;
+  const orig = cam.target.clone();
+  const tick = scene.onBeforeRenderObservable.add(() => {
+    cam.target.x = orig.x + (Math.random()-0.5)*0.4;
+    cam.target.y = orig.y + (Math.random()-0.5)*0.2;
+    count++;
+    if (count > 10) { cam.target = orig; scene.onBeforeRenderObservable.remove(tick); }
+  });
+}
+
+// ─── Ammo Regen ───────────────────────────────────────────────
+setInterval(() => {
+  GS.ammo = Math.min(100, GS.ammo + 2);
+  updateHUD();
+}, 1000);
+
+// ─── Wire Weapon Buttons ──────────────────────────────────────
+function wireWeapon(id, fireFn) {
+  const btn = document.getElementById(id);
+  const cfg = WEAPONS[id];
+
+  btn.addEventListener("click", () => {
+    if (GS.weaponCooldowns[id]) return;
+    if (GS.ammo < cfg.ammo && cfg.type !== "shield") {
+      addKillFeed("⚠️ LOW AMMO!", "#ff4400");
+      return;
+    }
+
+    showToast(cfg.name, cfg.color);
+    btn.classList.add("firing");
+    setTimeout(() => btn.classList.remove("firing"), 200);
+
+    fireFn();
+    updateHUD();
+
+    // Cooldown
+    GS.weaponCooldowns[id] = true;
+    setCooldownBtn(id, cfg.cooldown);
+    setTimeout(() => { GS.weaponCooldowns[id] = false; }, cfg.cooldown);
+  });
+}
+
+wireWeapon("v",   fireVulcan);
+wireWeapon("w",   fireWrecker);
+wireWeapon("p",   fireRocketPods);
+wireWeapon("s",   fireSeekers);
+wireWeapon("t",   fireThunder);
+wireWeapon("bo",  fireBlackoutEMP);
+wireWeapon("wa",  fireWaspDrones);
+wireWeapon("as",  activateAegisShield);
+wireWeapon("tri", fireTrident);
+
+// Vulcan can rapid-fire with hold
+let vulcanInterval = null;
+document.getElementById("v").addEventListener("mousedown", () => {
+  vulcanInterval = setInterval(() => {
+    if (GS.ammo >= 3) {
+      spawnBullet(1, 0.08, 1.2, 8, "#ff8800", 55);
+      GS.ammo = Math.max(0, GS.ammo - 1);
+      updateHUD();
+    }
+  }, 80);
+});
+document.addEventListener("mouseup", () => clearInterval(vulcanInterval));
+
+// ─── Keyboard Controls ────────────────────────────────────────
+window.addEventListener("keydown", e => { GS.keys[e.key.toLowerCase()] = true; });
+window.addEventListener("keyup",   e => { GS.keys[e.key.toLowerCase()] = false; });
+
+// Space = brake
+window.addEventListener("keydown", e => { if (e.code === "Space") { GS.speed *= 0.3; } });
+
+// Keyboard weapon shortcuts
+const keyMap = { "1":"v","2":"w","3":"p","4":"s","5":"t","6":"bo","7":"wa","8":"as","9":"tri" };
+window.addEventListener("keydown", e => {
+  if (keyMap[e.key]) document.getElementById(keyMap[e.key]).click();
 });
 
+// ─── Toggle (placeholder) ─────────────────────────────────────
+document.getElementById("toggle").addEventListener("click", () => {
+  GS.ammo = Math.min(100, GS.ammo + 25);
+  updateHUD();
+  addKillFeed("🔋 Ammo Resupply +25", "#ffcc00");
+  showToast("RESUPPLY!", "#ffcc00");
+});
+
+// ─── Enemy shoots back periodically ──────────────────────────
+setInterval(() => {
+  if (!carRoot || GS.tankMeshes.length === 0) return;
+  const alive = GS.tankMeshes.filter(t => !t._disposed);
+  if (alive.length === 0) return;
+  const shooter = alive[Math.floor(Math.random() * alive.length)];
+  if (BABYLON.Vector3.Distance(shooter.position, carRoot.position) < 40) {
+    if (!GS.shieldActive) {
+      const dmg = 5 + Math.floor(Math.random()*8);
+      GS.health = Math.max(0, GS.health - dmg);
+      GS.damage = Math.min(100, GS.damage + dmg);
+      updateHUD();
+      doFlash("hit");
+      addKillFeed(`💥 Hit! -${dmg} HP`, "#ff4444");
+    } else {
+      addKillFeed("🛡️ Shot blocked by Aegis!", "#00aaff");
+    }
+  }
+}, 3000);
+
+// ─── Start ────────────────────────────────────────────────────
+createScene().then(s => {
+  engine.runRenderLoop(() => s.render());
+});
 window.addEventListener("resize", () => engine.resize());
+updateHUD();
 </script>
 </body>
 </html>
