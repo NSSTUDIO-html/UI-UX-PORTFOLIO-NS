@@ -153,17 +153,27 @@
 <div id="flashOverlay"></div>
 <div id="killFeed"></div>
 <div id="shieldBar"><div id="shieldFill"></div></div>
-
+  
+  <audio id="vSound" src="sounds/vulcan.mp3"></audio>
+    <audio id="wSound" src="sounds/shotgun.mp3"></audio>
+    <audio id="pSound" src="sounds/rocket.mp3"></audio>
+    <audio id="sSound" src="sounds/missile.mp3"></audio>
+    <audio id="tSound" src="sounds/thunder.mp3"></audio>
+    <audio id="boSound" src="sounds/emp.mp3"></audio>
+    <audio id="waSound" src="sounds/drone.mp3"></audio>
+    <audio id="asSound" src="sounds/shield.mp3"></audio>
+    <audio id="triSound" src="sounds/trident.mp3"></audio>
+  
 <!-- Weapon buttons -->
-<button id="v"   title="Vulcan Cannon"></button>
-<button id="w"   title="Wrecker Shotgun"></button>
-<button id="p"   title="Rocket Pods"></button>
-<button id="s"   title="Seeker Missiles"></button>
-<button id="t"   title="Thunder Cannon"></button>
-<button id="bo"  title="Blackout EMP"></button>
-<button id="wa"  title="Wasp Drones"></button>
-<button id="as"  title="Aegis Shield"></button>
-<button id="tri" title="Trident Strike"></button>
+<button id="v" onclick="document.getElementById('vSound').play()"  title="Vulcan Cannon"></button>
+<button id="w" onclick="document.getElementById('wSound').play()"  title="Wrecker Shotgun"></button>
+<button id="p" onclick="document.getElementById('pSound').play()"  title="Rocket Pods"></button>
+<button id="s" onclick="document.getElementById('sSound').play()"  title="Seeker Missiles"></button>
+<button id="t" onclick="document.getElementById('tSound').play()"  title="Thunder Cannon"></button>
+<button id="bo" onclick="document.getElementById('boSound').play()" title="Blackout EMP"></button>
+<button id="wa" onclick="document.getElementById('waSound').play()" title="Wasp Drones"></button>
+<button id="as" onclick="document.getElementById('asSound').play()" title="Aegis Shield"></button>
+<button id="tri" onclick="document.getElementById('triSound').play()" title="Trident Strike"></button>
 
 <div id="toggle"><div id="sw"></div></div>
 <div id="controlGuide">W/S – Drive &nbsp; A/D – Turn<br>SPACE – Brake &nbsp; ↑↓←→ – Camera</div>
@@ -207,6 +217,7 @@ const WEAPONS = {
   tri: { name:"TRIDENT STRIKE",   ammo:20, cooldown:4000, damage:60,  color:"#ff00aa", type:"trident",  range:100},
 };
 
+  
 // ─── UI Helpers ───────────────────────────────────────────────
 const healthMeter = document.getElementById("healthMeter");
 const damageMeter = document.getElementById("damageMeter");
@@ -460,6 +471,7 @@ function spawnBullet(count, spread, speed, dmg, color, life) {
 
 // ─── Weapon Fire Functions ────────────────────────────────────
 function fireVulcan() {
+  
   // Rapid-fire 3 bullets
   spawnBullet(1, 0.08, 1.2, 8, "#ff8800", 55);
   doFlash("fire");
@@ -467,6 +479,7 @@ function fireVulcan() {
 }
 
 function fireWrecker() {
+  
   // Shotgun burst – 6 pellets
   spawnBullet(6, 0.7, 0.9, 18, "#ff4400", 30);
   doFlash("fire");
@@ -474,6 +487,7 @@ function fireWrecker() {
 }
 
 function fireRocketPods() {
+  
   // 3 rockets wide spread
   spawnBullet(3, 0.4, 1.4, 25, "#ff2200", 80);
   doFlash("fire");
@@ -483,6 +497,7 @@ function fireRocketPods() {
 }
 
 function fireSeekers() {
+  
   // Homing-ish: one per nearby tank
   const targets = GS.tankMeshes.filter(t => !t._disposed).slice(0,3);
   if (targets.length === 0) {
@@ -513,6 +528,7 @@ function fireSeekers() {
 }
 
 function fireThunder() {
+  
   // Wide energy blast – big sphere projectile
   const bm = BABYLON.MeshBuilder.CreateSphere("thunder", {diameter:0.8}, scene);
   const mat = new BABYLON.StandardMaterial("thunMat", scene);
@@ -529,6 +545,7 @@ function fireThunder() {
 }
 
 function fireBlackoutEMP() {
+  
   // EMP – damages all tanks within range, no bullet
   doFlash("emp");
   const empRange = 30;
@@ -559,6 +576,7 @@ function fireBlackoutEMP() {
 }
 
 function fireWaspDrones() {
+  
   // Spawn 3 drone spheres that orbit and auto-attack
   for (let i = 0; i < 3; i++) {
     const dm = BABYLON.MeshBuilder.CreateBox("drone"+i, {size:0.4}, scene);
@@ -574,6 +592,7 @@ function fireWaspDrones() {
 }
 
 function activateAegisShield() {
+  
   if (GS.shieldActive) return;
   GS.shieldActive = true;
   doFlash("shield");
@@ -605,6 +624,7 @@ function activateAegisShield() {
 }
 
 function fireTrident() {
+  
   // 3 massive forward beams
   for (let k = -1; k <= 1; k++) {
     const bm = BABYLON.MeshBuilder.CreateCylinder("tri"+k, {height:4, diameter:0.4, tessellation:8}, scene);
