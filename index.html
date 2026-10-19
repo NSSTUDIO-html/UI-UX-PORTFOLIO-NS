@@ -1,117 +1,230 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Naga Sasank | Frontend Portfolio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-  <style>
-    /* Glassmorphism cards */
-    .glass {
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naga Sasank | Frontend Portfolio</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
+      animation: {
+        float: 'float 7s ease-in-out infinite',
+        shine: 'shine 4s linear infinite',
+      },
+      keyframes: {
+        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-14px)' } },
+        shine: { '0%': { backgroundPosition: '0% 50%' }, '100%': { backgroundPosition: '200% 50%' } },
+      }
     }
-    /* Smooth hover */
-    .hover-scale:hover {
-      transform: scale(1.05);
-      transition: all 0.3s ease-in-out;
-    }
-  </style>
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { background: #ffffff; }
+  .gradient-text {
+    background: linear-gradient(90deg,#2563eb,#7c3aed,#db2777,#f59e0b,#059669);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 4s linear infinite;
+  }
+  .soft-card {
+    background: rgba(255,255,255,.85);
+    border: 1px solid rgba(15,23,42,.08);
+    box-shadow: 0 18px 45px -25px rgba(15,23,42,.25);
+    backdrop-filter: blur(12px);
+  }
+  .soft-card:hover {
+    box-shadow: 0 24px 60px -25px rgba(37,99,235,.35);
+    border-color: rgba(37,99,235,.25);
+  }
+  .mesh {
+    position: fixed; inset:0; z-index:-1; pointer-events:none;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(59,130,246,.16), transparent 35%),
+      radial-gradient(circle at 85% 15%, rgba(168,85,247,.15), transparent 35%),
+      radial-gradient(circle at 15% 80%, rgba(236,72,153,.13), transparent 35%),
+      radial-gradient(circle at 85% 85%, rgba(16,185,129,.13), transparent 35%);
+  }
+  .grid-bg {
+    position: fixed; inset:0; z-index:-2; pointer-events:none;
+    background-image: linear-gradient(rgba(15,23,42,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,.05) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 15%, black, transparent 80%);
+  }
+  ::selection { background:#2563eb; color:#fff; }
+</style>
 </head>
-<body class="font-sans bg-blue-50 text-gray-900">
+<body class="font-sans bg-white text-slate-900 antialiased">
 
-  <!-- Hero Section -->
-  <header class="relative bg-gradient-to-r from-blue-600 to-blue-400 text-white py-32 text-center overflow-hidden">
-    <div data-aos="fade-down">
-      <h1 class="text-5xl md:text-6xl font-bold mb-4">Naga Sasank</h1>
-      <p class="text-xl md:text-2xl mb-6">Frontend Developer | Crafting Modern Web Experiences</p>
-      <a href="#projects" class="bg-white text-blue-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300">View My Work</a>
+<div class="grid-bg"></div>
+<div class="mesh"></div>
+
+<!-- Navbar -->
+<nav class="fixed top-0 inset-x-0 z-50">
+  <div class="max-w-6xl mx-auto mt-4 px-4">
+    <div class="soft-card rounded-2xl px-5 py-3 flex items-center justify-between">
+      <a href="#home" class="flex items-center gap-3">
+        <span class="grid place-items-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 via-violet-600 to-pink-600 text-white font-black">N</span>
+        <span class="text-lg font-extrabold tracking-tight">Naga <span class="gradient-text">Sasank</span></span>
+      </a>
+      <div class="hidden md:flex items-center gap-1 text-sm font-semibold text-slate-600">
+        <a href="#home" class="px-4 py-2 rounded-xl hover:text-blue-700 hover:bg-blue-50 transition">Home</a>
+        <a href="#about" class="px-4 py-2 rounded-xl hover:text-violet-700 hover:bg-violet-50 transition">About</a>
+        <a href="#projects" class="px-4 py-2 rounded-xl hover:text-pink-700 hover:bg-pink-50 transition">Projects</a>
+        <a href="#contact" class="px-4 py-2 rounded-xl hover:text-emerald-700 hover:bg-emerald-50 transition">Contact</a>
+      </div>
+      <a href="#contact" class="rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2 text-sm font-bold text-white hover:opacity-90 transition">Contact</a>
     </div>
-    <!-- Animated circles in background -->
-    <div class="absolute top-0 left-0 w-full h-full">
-      <div class="absolute w-72 h-72 bg-blue-300 rounded-full opacity-30 animate-ping -top-16 -left-16"></div>
-      <div class="absolute w-96 h-96 bg-blue-400 rounded-full opacity-20 animate-ping -bottom-24 -right-24"></div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header id="home" class="relative pt-36 pb-24 px-6 overflow-hidden">
+  <div class="absolute -top-24 -left-20 w-80 h-80 rounded-full bg-blue-300/35 blur-3xl animate-float"></div>
+  <div class="absolute top-24 -right-24 w-96 h-96 rounded-full bg-violet-300/35 blur-3xl animate-float" style="animation-delay:-2s"></div>
+  <div class="absolute -bottom-28 left-1/3 w-80 h-80 rounded-full bg-pink-300/30 blur-3xl animate-float" style="animation-delay:-4s"></div>
+
+  <div class="relative max-w-5xl mx-auto text-center" data-aos="fade-down">
+    <div class="inline-flex items-center gap-2 rounded-full soft-card px-4 py-2 text-xs font-bold text-blue-700">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      Available for frontend &amp; web projects
     </div>
-  </header>
-
-  <!-- About Section -->
-  <section class="py-16 px-6 max-w-4xl mx-auto text-center" data-aos="fade-up">
-    <h2 class="text-4xl font-bold mb-6 text-blue-700">About Me</h2>
-    <p class="text-gray-1000 text-lg">I am a passionate frontend developer with experience building responsive and interactive web applications using HTML, CSS, JavaScript, and frameworks like Tailwind CSS and React. My goal is to create visually stunning websites that users love to explore.</p>
-  </section>
-
-  <!-- Projects Section -->
-  <section id="projects" class="py-24 px-6 max-w-6xl mx-auto">
-    <h2 class="text-4xl font-bold text-center mb-12 text-blue-700" data-aos="fade-up">My Projects</h2>
-    <div class="grid md:grid-cols-2 gap-10">
-
-      <!-- Project 1: Fetch App -->
-      <div class="glass hover-scale overflow-hidden shadow-lg p-6" data-aos="zoom-in">
-        <img src="https://images.seeklogo.com/logo-png/61/2/fetch-logo-png_seeklogo-619531.png" class="w-full h-56 object-cover rounded-lg mb-4" alt="Fetch App">
-        <h3 class="text-2xl font-semibold mb-2">Fetch App</h3>
-        <p class="text-gray-200 mb-4">A data-fetching app that displays dynamic content from APIs with responsive design.</p>
-        <a href="FETCHAPP.html" class="text-blue-400 font-semibold hover:underline">View Project</a>
-      </div>
-
-      <!-- Project 2: Watchlist App -->
-      <div class="glass hover-scale overflow-hidden shadow-lg p-6" data-aos="zoom-in" data-aos-delay="100">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPds_Yuz5Lo1srWLfmU4nnJRITbcNd9KcPdGK4yQNJC8c5wWRIy3mI-8EO&s=10" class="w-full h-56 object-cover rounded-lg mb-4" alt="Watchlist App">
-        <h3 class="text-2xl font-semibold mb-2">Watchlist App</h3>
-        <p class="text-gray-200 mb-4">A CRUD application for movies and anime watchlists, built with localStorage and modern UI.</p>
-        <a href="WATCHLIST.html" class="text-blue-400 font-semibold hover:underline">View Project</a>
-      </div>
-
-      <!-- Project 3: Apple Landing Page -->
-      <div class="glass hover-scale overflow-hidden shadow-lg p-6" data-aos="zoom-in" data-aos-delay="200">
-        <img src="https://www.livemint.com/lm-img/img/2025/09/23/600x338/SDIM0374_1758610358608_1758610365031.JPG" class="w-full h-56 object-cover rounded-lg mb-4" alt="Apple Landing Page">
-        <h3 class="text-2xl font-semibold mb-2">Apple Landing Page</h3>
-        <p class="text-gray-200 mb-4">A clean, responsive landing page for iPhone 17 Pro using Tailwind CSS and modern design.</p>
-        <a href="APPLE.html" class="text-blue-400 font-semibold hover:underline">View Project</a>
-      </div>
-
-      <!-- Project 4: Wardrive3D -->
-      <div class="glass hover-scale overflow-hidden shadow-lg p-6" data-aos="zoom-in" data-aos-delay="300">
-        <img src="file_000000003f6861f8b8d6477b55f57779.png" class="w-full h-56 object-cover rounded-lg mb-4" alt="Wardrive3D Game">
-        <h3 class="text-2xl font-semibold mb-2">Wardrive3D</h3>
-        <p class="text-gray-200 mb-4">A 3D car game with tank and helicopter elements, built with Three.js for immersive gameplay.</p>
-        <a href="INDEX.html" class="text-blue-400 font-semibold hover:underline">View Project</a>
-      </div>
-
-      <!-- Project 5: Frontend Projects Repo -->
-<div class="glass hover-scale overflow-hidden shadow-lg p-6" data-aos="zoom-in" data-aos-delay="400">
-  <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" class="w-full h-56 object-cover rounded-lg mb-4" alt="Frontend Projects Repo">
-  <h3 class="text-2xl font-semibold mb-2">Frontend Projects Repo</h3>
-  <p class="text-gray-200 mb-4">A collection of my frontend projects including HTML, CSS, JS, Tailwind, and React apps. Explore the code and live demos.</p>
-  <a href="https://github.com/NSSTUDIO-html/FRONT-END-PROJECTS" target="_blank" class="text-blue-400 font-semibold hover:underline">View Repo</a>
-</div>
-
+    <h1 class="mt-8 text-5xl md:text-7xl font-black tracking-tight leading-[1.05]">
+      Naga <span class="gradient-text">Sasank</span>
+    </h1>
+    <p class="mt-5 text-xl md:text-2xl text-slate-600 font-medium">
+      Frontend Developer | Crafting Modern Web Experiences
+    </p>
+    <p class="mt-5 max-w-2xl mx-auto text-slate-500">
+      I create responsive, interactive, and visually engaging websites using HTML, CSS, JavaScript, Tailwind CSS, and React.
+    </p>
+    <div class="mt-9 flex flex-wrap justify-center gap-4">
+      <a href="#projects" class="rounded-2xl bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 px-7 py-3.5 font-bold text-white shadow-lg shadow-blue-200 hover:scale-[1.03] transition">View My Work</a>
+      <a href="#contact" class="soft-card rounded-2xl px-7 py-3.5 font-bold text-slate-700 hover:text-blue-700 transition">Contact Me</a>
     </div>
-  </section>
+  </div>
+</header>
 
-  <!-- Contact Section -->
-  <section class="py-24 px-6 bg-blue-800 text-white text-center" data-aos="fade-up">
-    <h2 class="text-4xl font-bold mb-6">Contact Me</h2>
-    <p class="mb-6">Interested in collaborating or hiring me for your next project? Reach out!</p>
-    <a href="mailto:nagasasank7@gmail.com" class="bg-white text-blue-800 font-semibold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300">
-  Email Me
-    </a>
-  </section>
+<!-- About -->
+<section id="about" class="py-20 px-6">
+  <div class="max-w-5xl mx-auto soft-card rounded-[2rem] p-8 md:p-14 text-center" data-aos="fade-up">
+    <p class="text-sm font-bold uppercase tracking-[.25em] text-violet-600">About Me</p>
+    <h2 class="mt-3 text-3xl md:text-5xl font-black">Building clean, colorful <span class="gradient-text">web experiences</span></h2>
+    <p class="mt-6 text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+      I am a passionate frontend developer with experience building responsive and interactive web applications using HTML, CSS, JavaScript, and frameworks like Tailwind CSS and React. My goal is to create visually stunning websites that users love to explore.
+    </p>
+    <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded-2xl bg-blue-50 border border-blue-100 p-5"><p class="text-2xl font-black text-blue-600">HTML</p><p class="text-sm text-slate-500 mt-1">Semantic Layouts</p></div>
+      <div class="rounded-2xl bg-violet-50 border border-violet-100 p-5"><p class="text-2xl font-black text-violet-600">CSS</p><p class="text-sm text-slate-500 mt-1">Modern Styling</p></div>
+      <div class="rounded-2xl bg-pink-50 border border-pink-100 p-5"><p class="text-2xl font-black text-pink-600">JavaScript</p><p class="text-sm text-slate-500 mt-1">Interactivity</p></div>
+      <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-5"><p class="text-2xl font-black text-emerald-600">React</p><p class="text-sm text-slate-500 mt-1">Component UI</p></div>
+    </div>
+  </div>
+</section>
 
-  <!-- Footer -->
-  <footer class="bg-blue-900 text-white py-6 text-center">
-    <p>&copy; 2025 Naga Sasank. All rights reserved.</p>
-  </footer>
+<!-- Projects -->
+<section id="projects" class="py-20 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-14" data-aos="fade-up">
+      <p class="text-sm font-bold uppercase tracking-[.25em] text-pink-600">Portfolio</p>
+      <h2 class="mt-3 text-3xl md:text-5xl font-black">My <span class="gradient-text">Projects</span></h2>
+      <p class="mt-4 text-slate-500 max-w-2xl mx-auto">A selection of frontend apps, landing pages, and interactive 3D experiences.</p>
+    </div>
 
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-  <script>
-    AOS.init({
-      duration: 1000,
-      once: true,
-    });
-  </script>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div class="soft-card rounded-3xl overflow-hidden transition hover:-translate-y-2" data-aos="zoom-in">
+        <img src="https://images.seeklogo.com/logo-png/61/2/fetch-logo-png_seeklogo-619531.png" class="w-full h-56 object-cover bg-slate-100" alt="Fetch App">
+        <div class="p-7">
+          <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold">Fetch App</h3>
+            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">API</span>
+          </div>
+          <p class="mt-3 text-slate-600">A data-fetching app that displays dynamic content from APIs with responsive design.</p>
+          <a href="FETCHAPP.html" class="mt-6 inline-flex items-center gap-2 font-bold text-blue-600 hover:text-blue-800">View Project →</a>
+        </div>
+      </div>
 
+      <div class="soft-card rounded-3xl overflow-hidden transition hover:-translate-y-2" data-aos="zoom-in" data-aos-delay="100">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTPds_Yuz5Lo1srWLfmU4nnJRITbcNd9KcPdGK4yQNJC8c5wWRIy3mI-8EO&s=10" class="w-full h-56 object-cover bg-slate-100" alt="Watchlist App">
+        <div class="p-7">
+          <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold">Watchlist App</h3>
+            <span class="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700">CRUD</span>
+          </div>
+          <p class="mt-3 text-slate-600">A CRUD application for movies and anime watchlists, built with localStorage and modern UI.</p>
+          <a href="WATCHLIST.html" class="mt-6 inline-flex items-center gap-2 font-bold text-violet-600 hover:text-violet-800">View Project →</a>
+        </div>
+      </div>
+
+      <div class="soft-card rounded-3xl overflow-hidden transition hover:-translate-y-2" data-aos="zoom-in" data-aos-delay="200">
+        <img src="https://www.livemint.com/lm-img/img/2025/09/23/600x338/SDIM0374_1758610358608_1758610365031.JPG" class="w-full h-56 object-cover bg-slate-100" alt="Apple Landing Page">
+        <div class="p-7">
+          <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold">Apple Landing Page</h3>
+            <span class="rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-pink-700">Landing Page</span>
+          </div>
+          <p class="mt-3 text-slate-600">A clean, responsive landing page for iPhone 17 Pro using Tailwind CSS and modern design.</p>
+          <a href="APPLE.html" class="mt-6 inline-flex items-center gap-2 font-bold text-pink-600 hover:text-pink-800">View Project →</a>
+        </div>
+      </div>
+
+      <div class="soft-card rounded-3xl overflow-hidden transition hover:-translate-y-2" data-aos="zoom-in" data-aos-delay="300">
+        <img src="file_000000003f6861f8b8d6477b55f57779.png" class="w-full h-56 object-cover bg-slate-100" alt="Wardrive3D Game">
+        <div class="p-7">
+          <div class="flex items-center justify-between">
+            <h3 class="text-2xl font-bold">Wardrive3D</h3>
+            <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Three.js</span>
+          </div>
+          <p class="mt-3 text-slate-600">A 3D car game with tank and helicopter elements, built with Three.js for immersive gameplay.</p>
+          <a href="INDEX.html" class="mt-6 inline-flex items-center gap-2 font-bold text-emerald-600 hover:text-emerald-800">View Project →</a>
+        </div>
+      </div>
+
+      <div class="soft-card rounded-3xl overflow-hidden transition hover:-translate-y-2 md:col-span-2" data-aos="zoom-in" data-aos-delay="400">
+        <div class="grid md:grid-cols-2">
+          <img src="https://cdn-icons-png.flaticon.com/512/25/25231.png" class="w-full h-56 md:h-full object-cover bg-slate-100" alt="Frontend Projects Repo">
+          <div class="p-7 md:p-10">
+            <div class="flex items-center justify-between">
+              <h3 class="text-2xl font-bold">Frontend Projects Repo</h3>
+              <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">GitHub</span>
+            </div>
+            <p class="mt-3 text-slate-600">A collection of my frontend projects including HTML, CSS, JS, Tailwind, and React apps. Explore the code and live demos.</p>
+            <a href="https://github.com/NSSTUDIO-html/FRONT-END-PROJECTS" target="_blank" rel="noopener" class="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white hover:bg-slate-800 transition">View Repo →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="py-20 px-6">
+  <div class="max-w-5xl mx-auto rounded-[2rem] bg-gradient-to-r from-blue-600 via-violet-600 to-pink-600 p-1" data-aos="fade-up">
+    <div class="rounded-[1.85rem] bg-white p-8 md:p-14 text-center">
+      <p class="text-sm font-bold uppercase tracking-[.25em] text-blue-600">Contact</p>
+      <h2 class="mt-3 text-3xl md:text-5xl font-black">Let’s work <span class="gradient-text">together</span></h2>
+      <p class="mt-4 text-slate-600 max-w-xl mx-auto">Interested in collaborating or hiring me for your next project? Reach out!</p>
+      <a href="mailto:nagasasank7@gmail.com" class="mt-8 inline-block rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 px-8 py-4 font-bold text-white hover:scale-[1.03] transition">Email Me</a>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-slate-100 py-8 text-center text-sm text-slate-500">
+  <p>&copy; 2025 Naga Sasank. All rights reserved.</p>
+  <p class="mt-2">Built with HTML, Tailwind CSS, and AOS animations.</p>
+</footer>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({ duration: 1000, once: true });
+</script>
 </body>
 </html>
